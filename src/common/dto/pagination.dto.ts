@@ -8,6 +8,7 @@ import {
 import { Type } from 'class-transformer';
 import { IPaginateFilter, IPagination } from '../interfaces';
 import { STATUS_RESOURCE } from '../constants/enums';
+import { ToBoolean } from '../decorator';
 export class PaginationDto implements IPagination {
   @IsNumber()
   @IsPositive()
@@ -24,6 +25,7 @@ export class PaginationDto implements IPagination {
   @IsBoolean()
   @IsOptional()
   @Type(() => Boolean)
+  @ToBoolean('all')
   all?: boolean = false;
 }
 

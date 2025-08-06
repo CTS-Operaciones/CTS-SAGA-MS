@@ -5,6 +5,7 @@ import { CreateResourceDto } from './dto/create-resource.dto';
 import { UpdateResourceDto } from './dto/update-resource.dto';
 import {
   FindOneWhitTermAndRelationDto,
+  PaginationDto,
   PaginationRelationsDto,
 } from 'src/common';
 

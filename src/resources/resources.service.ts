@@ -7,6 +7,7 @@ import {
   ErrorManager,
   findOneByTerm,
   FindOneWhitTermAndRelationDto,
+  PaginationDto,
   PaginationRelationsDto,
   paginationResult,
   updateResult,
@@ -47,16 +48,31 @@ export class ResourcesService {
     }
   }
 
-  findAll(pagination: PaginationRelationsDto) {
+  async findAll(pagination: PaginationRelationsDto) {
     try {
-      const option: FindManyOptions<Resource> = {};
-      if (pagination.relations)
-        option.relations = { clasification: true, model: true };
-      const result = paginationResult(this.resourceRepository, {
+      const { relations } = pagination;
+      const options: FindManyOptions<Resource> = {};
+
+      if (relations) {
+        if (pagination.relations) {
+          options.relations = {};
+        }
+
+        options.relations = {
+          inventory: true,
+          clasification: true,
+          model: {
+            brand: true,
+          },
+        };
+      }
+
+      const resource = await paginationResult(this.resourceRepository, {
         ...pagination,
-        options: option,
+        options,
       });
-      return result;
+
+      return resource;
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);

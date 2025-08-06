@@ -36,8 +36,28 @@ export class AssignmentsService {
 
   async findAll(pagination: PaginationRelationsDto) {
     try {
+      const { relations } = pagination;
       const options: FindManyOptions<Assignments> = {};
-      if (pagination.relations) options.relations = {};
+      if (relations) {
+        if (pagination.relations) {
+          options.relations = {};
+        }
+
+        options.relations = {
+          inventoryHasAssigment: {
+            inventory: {
+              ubications: true,
+              resource: {
+                clasification: true,
+                model: {
+                  brand: true,
+                },
+              },
+            },
+          },
+        };
+      }
+
       const result = paginationResult(this.assignmentsRepository, {
         ...pagination,
         options,

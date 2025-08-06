@@ -52,14 +52,32 @@ export class AddRemoveService {
   async findAll(pagination: PaginationRelationsDto) {
     try {
       const options: FindManyOptions<addRemoval> = {};
+      const { relations } = pagination;
       if (pagination.relations) {
         options.relations = {};
       }
 
-      return await paginationResult(this.addRemovalRepository, {
+      if (relations) {
+        options.relations = {
+          ...options.relations,
+          inventoryHasAddRemoval: {
+            inventory: {
+              ubications: true,
+              resource: {
+                clasification: true,
+                model: {
+                  brand: true,
+                },
+              },
+            },
+          },
+        };
+      }
+      const result = await paginationResult(this.addRemovalRepository, {
         ...pagination,
         options,
       });
+      return result;
     } catch (error) {}
   }
 
@@ -72,15 +90,15 @@ export class AddRemoveService {
     try {
       const options: FindOneOptions<addRemoval> = {};
 
-       if (relations)
-         options.relations = {
-           ...options.relations,
-           inventoryHasAddRemoval: {
-             inventory: {
-               ubications: true,
-             },
-           },
-         };
+      if (relations)
+        options.relations = {
+          ...options.relations,
+          inventoryHasAddRemoval: {
+            inventory: {
+              ubications: true,
+            },
+          },
+        };
       if (allRelations) {
         options.relations = {
           inventoryHasAddRemoval: {
