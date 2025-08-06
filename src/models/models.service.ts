@@ -46,14 +46,14 @@ export class ModelsService {
   }
 
   async findOne({
-    term: id,
+    term,
     relations,
     deletes,
     allRelations,
   }: FindOneWhitTermAndRelationDto) {
     try {
       const options: FindOneOptions<Model> = {
-        where: { id: +id },
+        where: { id: +term },
         relations: { brand: true },
       };
 
@@ -72,9 +72,10 @@ export class ModelsService {
         options.withDeleted = true;
       }
 
-      const result = await paginationResult(this.modelRepository, {
-        all: true,
-        options: options,
+      const result = await findOneByTerm({
+        repository: this.modelRepository,
+        term,
+        options,
       });
 
       return result;
