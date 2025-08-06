@@ -110,23 +110,25 @@ export class ResourcesService {
         relations: { clasification: true, model: true },
       };
 
-      if (relations) options.relations = {
-        ...options.relations,
-        model: {
-          resource: {
-            clasification: true,
-            model: true,
+      if (relations)
+        options.relations = {
+          ...options.relations,
+          model: {
+            resource: {
+              clasification: true,
+              model: true,
+            },
           },
-        },
-                
-      };
+        };
       if (allRelations) {
         options.relations = {
           clasification: true,
           model: {
             resource: {
               clasification: true,
-              model: true,
+              model: {
+                brand: true,
+              },
             },
           },
         };
