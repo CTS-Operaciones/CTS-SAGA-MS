@@ -37,7 +37,7 @@ export class ResourcesService {
 
       const result = await createResult(
         this.resourceRepository,
-        { ...createResourceDto, clasification: claExist, model: modelExist },
+        { ...createResourceDto, clasification: claExist, model: modelExist[0] },
         Resource,
       );
       return result;
@@ -154,7 +154,7 @@ export class ResourcesService {
         const modelExist = await this.modelsService.findOne({
           term: res.modelId,
         });
-        resource.data[0].model = modelExist;
+        resource.data[0].model[0] = modelExist;
       }
       if (
         res.clasificationId &&

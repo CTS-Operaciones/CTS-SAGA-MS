@@ -21,8 +21,16 @@ export class ModelsController {
   }
 
   @MessagePattern('findOneModel')
-  findOne(@Payload() findOne: FindOneWhitTermAndRelationDto) {
-    return this.modelsService.findOne(findOne);
+  findOne(
+    @Payload()
+    { term, relations, allRelations, deletes }: FindOneWhitTermAndRelationDto,
+  ) {
+    return this.modelsService.findOne({
+      term,
+      relations,
+      deletes,
+      allRelations,
+    });
   }
 
   @MessagePattern('updateModel')

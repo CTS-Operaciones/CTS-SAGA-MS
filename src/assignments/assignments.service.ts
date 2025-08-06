@@ -17,18 +17,16 @@ export class AssignmentsService {
   create(createAssignmentDto: CreateAssignmentDto) {
     try {
       return runInTransaction(this.dataSource, async (manager) => {
-        const { name, date, hours, type, accessories } = createAssignmentDto;
-        return await createResult(
+        const { type, ...rest } = createAssignmentDto;
+        const result = await createResult(
           this.assignmentsRepository,
           {
-            name,
-            date,
-            hours,
+            ...rest,
             type,
-            accessories,
           },
           Assignments,
         );
+        return result;
       });
     } catch (error) {
       console.log(error);
