@@ -103,7 +103,9 @@ export class InventoryHasAssignService {
             state: true,
             resource: {
               clasification: true,
-              model: true,
+              model: {
+                brand: true,
+              },
             },
           },
         };

@@ -77,15 +77,15 @@ export class AssignmentsService {
   }: FindOneWhitTermAndRelationDto) {
     try {
       const options: FindOneOptions<Assignments> = {
-        where: { id: +term },
+        /*  where: { id: +term },
         relations: {
           inventoryHasAssigment: {
             inventory: true,
           },
-        },
+        }, */
       };
 
-      if (relations || allRelations) {
+      if (relations) {
         options.relations = {
           inventoryHasAssigment: {
             inventory: true,
@@ -99,7 +99,9 @@ export class AssignmentsService {
               state: true,
               resource: {
                 clasification: true,
-                model: true,
+                model: {
+                  brand: true,
+                },
               },
             },
           },
@@ -109,10 +111,12 @@ export class AssignmentsService {
         options.withDeleted = true;
       }
 
-      const result = await paginationResult(this.assignmentsRepository, {
-        all: true,
+      const result = await findOneByTerm({
+        repository: this.assignmentsRepository,
+        term,
         options,
       });
+
       return result;
     } catch (error) {
       console.log(error);
