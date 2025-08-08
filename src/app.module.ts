@@ -13,7 +13,7 @@ import { AdmissionsDischargesModule } from './admissions-discharges/admissions-d
 import { InventoryModule } from './inventory/inventory.module';
 import { UbicationsModule } from './ubications/ubications.module';
 import { InventoryHasAddModule } from './add-remove/inventory-has-add/inventory-has-add.module';
-
+import { InventoryHasAssignModule } from './assignments/inventory-has-assign/inventory-has-assign.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({ ...ConfigDataSource }),
@@ -29,7 +29,7 @@ import { InventoryHasAddModule } from './add-remove/inventory-has-add/inventory-
     MantenanceModule,
     UbicationsModule,
     InventoryHasAddModule,
-    //InventoryHasAssigmentModule,
+    InventoryHasAssignModule,
   ],
 })
 export class AppModule {}
