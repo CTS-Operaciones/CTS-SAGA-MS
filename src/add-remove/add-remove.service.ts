@@ -103,10 +103,13 @@ export class AddRemoveService {
         options.relations = {
           inventoryHasAddRemoval: {
             inventory: {
+              ubications: true,
               state: true,
               resource: {
                 clasification: true,
-                model: true,
+                model: {
+                  brand: true,
+                },
               },
             },
           },
