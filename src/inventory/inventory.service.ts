@@ -17,6 +17,7 @@ import {
 
 import { StateService } from 'src/state/state.service';
 import { UbicationsService } from 'src/ubications/ubications.service';
+import { ResourcesService } from 'src/resources/resources.service';
 import { aumentarStock, disminuirStock } from 'src/common/helpers/modifyStock';
 
 @Injectable()
@@ -26,18 +27,33 @@ export class InventoryService {
     private readonly inventoryRepository: Repository<Inventory>,
     private readonly stateServices: StateService,
     private readonly ubicationsService: UbicationsService,
+    private readonly resourcesService: ResourcesService,
   ) {}
   async create(createInventoryDto: CreateInventoryDto) {
     try {
-      const { user_id, ubications, ...CreateInventoryDto } = createInventoryDto;
+      const { ubications, resourceId, stateId, ...CreateInventoryDto } =
+        createInventoryDto;
 
-      let stateExist = await this.stateServices.findOne(
-        createInventoryDto.stateId,
-      );
+      let resourceExist: any, ubicationExist: any, stateExist: any;
+      stateId
+        ? (stateExist = await this.stateServices.findOne(stateId))
+        : (stateExist = null);
 
-      let ubicationExist = await this.ubicationsService.findOne(
-        createInventoryDto.ubications,
-      );
+      ubications
+        ? (ubicationExist = await this.ubicationsService.findOne(ubications))
+        : (ubicationExist = null);
+
+      resourceId
+        ? (resourceExist = await this.resourcesService.findOne({
+            term: resourceId,
+            relations: true,
+          }))
+        : (resourceExist = null);
+
+      const data = resourceExist.data[0];
+
+      console.log(data);
+      //Agregar relacion con staff user_id
 
       const result = await createResult(
         this.inventoryRepository,
@@ -45,6 +61,7 @@ export class InventoryService {
           ...CreateInventoryDto,
           ubications: ubicationExist,
           state: stateExist,
+          resource: data,
         },
         Inventory,
       );

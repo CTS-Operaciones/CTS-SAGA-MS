@@ -28,19 +28,28 @@ export class ResourcesService {
   ) {}
   async create(createResourceDto: CreateResourceDto) {
     try {
-      const claExist = await this.clasificationsService.findOne(
-        createResourceDto.clasificationId,
-      );
+      const { clasificationId, modelId } = createResourceDto;
+      if (clasificationId && modelId) {
+        const claExist = await this.clasificationsService.findOne(
+          createResourceDto.clasificationId,
+        );
 
-      const modelExist = await this.modelsService.findOne({
-        term: createResourceDto.modelId,
-      });
+        const modelExist = await this.modelsService.findOne({
+          term: createResourceDto.modelId,
+        });
+
+        Object.assign(createResourceDto, {
+          clasification: claExist,
+          model: modelExist[0],
+        });
+      }
 
       const result = await createResult(
         this.resourceRepository,
-        { ...createResourceDto, clasification: claExist, model: modelExist[0] },
+        { ...createResourceDto },
         Resource,
       );
+
       return result;
     } catch (error) {
       console.log(error);
@@ -78,14 +87,11 @@ export class ResourcesService {
       throw ErrorManager.createSignatureError(error);
     }
   }
-
   async findOneByName({
     name,
     clasificationId,
-    description,
-    especifications,
-    quatity,
     modelId,
+    ...rest
   }: CreateResourceDto) {
     try {
       const result = await this.resourceRepository.findOne({
@@ -98,13 +104,21 @@ export class ResourcesService {
       });
 
       if (!result) {
+        if (clasificationId) {
+          const clasification =
+            await this.clasificationsService.findOne(clasificationId);
+        }
+        if (modelId) {
+          const model = await this.modelsService.findOne({
+            term: modelId,
+            relations: true,
+          });
+        }
         return await this.create({
           name,
           clasificationId,
           modelId,
-          description,
-          quatity,
-          especifications,
+          ...rest,
         });
       }
 
@@ -113,6 +127,21 @@ export class ResourcesService {
       throw ErrorManager.createSignatureError(error);
     }
   }
+
+  async getAllResourcesConcat() {
+    const resources = await this.resourceRepository
+      .createQueryBuilder('r')
+      .select(
+        'concat(r.name, " - ", c.name, " - ", m.name, " - ", b.name) as name',
+        'r.id',
+      )
+      .leftJoinAndSelect('r.clasification', 'c')
+      .leftJoinAndSelect('r.model', 'm')
+      .leftJoinAndSelect('m.brand', 'b')
+      .getRawMany();
+    return resources;
+  }
+  /*TODO:Busqueda de recursos por id*/
 
   async findOne({
     term,

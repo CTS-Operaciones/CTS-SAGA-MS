@@ -4,7 +4,6 @@ import { InventoryHasAddRemoval } from 'cts-entities';
 import { FindOneOptions, Repository } from 'typeorm';
 
 import {
-  createResult,
   deleteResult,
   ErrorManager,
   FindOneWhitTermAndRelationDto,
@@ -13,63 +12,34 @@ import {
 } from 'src/common';
 
 import { CreateHasAddRemoveDto } from '../inventory-has-add/dto/create-inventory-has-add-remove.dto';
-import { ResourcesService } from '../../resources/resources.service';
+
 import { AddRemoveService } from '../add-remove.service';
+import { InventoryService } from 'src/inventory/inventory.service';
 
 @Injectable()
 export class InventoryHasAddService {
   constructor(
     @InjectRepository(InventoryHasAddRemoval)
     private readonly inventoryHasAddRemovalRepository: Repository<InventoryHasAddRemoval>,
-    private readonly resoruceService: ResourcesService,
     private readonly addRemoveService: AddRemoveService,
+    private readonly inventoryService: InventoryService,
   ) {}
   async create(createDto: CreateHasAddRemoveDto) {
     try {
-      const { resource: _resource, idActa, ...rest } = createDto;
+      const { idActa, resource } = createDto;
 
-      const addRemoval = await this.addRemoveService.findOne({ term: idActa });
+      for (const r of resource) {
+        const { idResource, quantity } = r;
+        /*TODO: Registrar en la base de datos de acuerdo a la quantity el inventario*/
+        for (let i = 0; i < quantity; i++) {
+          const registro = this.inventoryService.create({
+            idActa,
+            idRecurso,
+          });
 
-      const resource = await this.resoruceService.findOneByName(_resource);
-
-      let inventoryCrated: InventoryHasAddRemoval | null;
-
-      inventoryCrated = await this.inventoryHasAddRemovalRepository.findOne({
-        where: {
-          addRemoval,
-          inventory: {
-            idName: rest.idName,
-            serialNumber: rest.serialNumber,
-            resource: { id: resource.id },
-          },
-        },
-        relations: { addRemoval: true },
-        withDeleted: true,
-      });
-
-      if (inventoryCrated) {
-        return inventoryCrated.deleted_at
-          ? await restoreResult(
-              this.inventoryHasAddRemovalRepository,
-              inventoryCrated.id,
-            )
-          : inventoryCrated;
+          registrosACrear.push(registro);
+        }
       }
-
-      inventoryCrated = await createResult(
-        this.inventoryHasAddRemovalRepository,
-        {
-          addRemoval,
-          inventory: {
-            idName: rest.idName,
-            serialNumber: rest.serialNumber,
-            resource,
-          },
-        },
-        InventoryHasAddRemoval,
-      );
-
-      return inventoryCrated;
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);
@@ -131,7 +101,7 @@ export class InventoryHasAddService {
               }
             : el.inventory,
         };
-      }); 
+      });
 
       if (data.length <= 0) {
         throw new ErrorManager({

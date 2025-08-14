@@ -22,6 +22,10 @@ export class ResourcesController {
   findAll(@Payload() pagination: PaginationRelationsDto) {
     return this.resourcesService.findAll(pagination);
   }
+  @MessagePattern('getAllResourcesConcat')
+  getAllResourcesConcat() {
+    return this.resourcesService.getAllResourcesConcat();
+  }
 
   @MessagePattern('findOneResource')
   findOne(

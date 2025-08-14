@@ -5,12 +5,17 @@ import { Inventory, Ubications } from 'cts-entities';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { StateModule } from 'src/state/state.module';
 import { UbicationsModule } from 'src/ubications/ubications.module';
-
+import { ResourcesModule } from 'src/resources/resources.module';
 
 @Module({
-  imports: [UbicationsModule, StateModule, TypeOrmModule.forFeature([Inventory])],  
+  imports: [
+    UbicationsModule,
+    StateModule,
+    ResourcesModule,
+    TypeOrmModule.forFeature([Inventory]),
+  ],
   controllers: [InventoryController],
   providers: [InventoryService],
-  exports: [InventoryService]
+  exports: [InventoryService],
 })
 export class InventoryModule {}

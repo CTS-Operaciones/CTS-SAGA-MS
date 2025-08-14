@@ -140,18 +140,6 @@ export class AddRemoveService {
           relations: true,
         });
 
-        if (
-          rest.ubicationId &&
-          rest.ubicationId !==
-            addRemoval.inventoryHasAddRemoval[0].inventory.ubications.id
-        ) {
-          const ubicationExist = await this.findOne({
-            term: rest.ubicationId,
-          });
-          addRemoval.inventoryHasAddRemoval[0].inventory[0].ubications =
-            ubicationExist;
-        }
-        Object.assign(addRemoval, rest);
         const result = await updateResult(
           this.addRemovalRepository,
           id,

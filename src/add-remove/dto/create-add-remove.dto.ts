@@ -11,15 +11,6 @@ export class CreateAddRemoveDto {
   @IsNotEmpty()
   observations: string;
 
-  /*   @IsArray()
-  @IsNumber({}, { each: true })
-  idIventory: number[]; */
-
   @IsEnum(ADD_REMOVE)
   type: ADD_REMOVE;
-
-  @IsNumber()
-  @IsNotEmpty()
-  @IsPositive()
-  ubicationId: number;
 }

@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsNumber, IsPositive, IsString } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsPositive,
+  IsString,
+} from 'class-validator';
+import { TYPE_RESOURCE } from '../../common';
 
 export class CreateResourceDto {
   @IsString()
@@ -6,7 +13,6 @@ export class CreateResourceDto {
   name: string;
 
   @IsString()
-  @IsNotEmpty()
   description: string;
 
   @IsNumber()
@@ -14,16 +20,15 @@ export class CreateResourceDto {
   quatity: number;
 
   @IsString()
-  @IsNotEmpty()
   especifications: string;
 
-  @IsPositive()
-  @IsNotEmpty()
   @IsNumber()
   clasificationId: number;
 
-  @IsPositive()
-  @IsNotEmpty()
   @IsNumber()
   modelId: number;
+
+  @IsEnum(TYPE_RESOURCE)
+  @IsNotEmpty()
+  type: string;
 }

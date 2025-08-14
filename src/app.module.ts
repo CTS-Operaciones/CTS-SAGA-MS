@@ -14,6 +14,7 @@ import { InventoryModule } from './inventory/inventory.module';
 import { UbicationsModule } from './ubications/ubications.module';
 import { InventoryHasAddModule } from './add-remove/inventory-has-add/inventory-has-add.module';
 import { InventoryHasAssignModule } from './assignments/inventory-has-assign/inventory-has-assign.module';
+import { AccesoriesModule } from './accesories/accesories.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({ ...ConfigDataSource }),
@@ -30,6 +31,7 @@ import { InventoryHasAssignModule } from './assignments/inventory-has-assign/inv
     UbicationsModule,
     InventoryHasAddModule,
     InventoryHasAssignModule,
+    AccesoriesModule,
   ],
 })
 export class AppModule {}

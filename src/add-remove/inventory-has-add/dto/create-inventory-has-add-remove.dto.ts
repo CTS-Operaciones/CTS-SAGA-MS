@@ -1,36 +1,36 @@
 
+import { Type } from 'class-transformer';
 import {
-  IsEnum,
+  IsArray,
   IsNotEmpty,
   IsNumber,
   IsPositive,
-  IsString,
   ValidateNested,
 } from 'class-validator';
-import { CreateResourceDto as createResourceDto } from '../../../resources/dto/create-resource.dto';
-import { Type } from 'class-transformer';
-import { STATUS_RESOURCE } from 'src/common';
 
+export class ResourceDto {
+  @IsNumber()
+  @IsPositive()
+  @IsNotEmpty()
+  idResource: number;
+
+  @IsNumber()
+  @IsPositive()
+  @IsNotEmpty()
+  quantity: number;
+}
 export class CreateHasAddRemoveDto {
-  // Resource
-  @ValidateNested()
-  @Type(() => createResourceDto)
-  resource: createResourceDto;
   //Id del acta
   @IsNumber()
   @IsPositive()
   @IsNotEmpty()
   idActa: number;
-  // Inventory
-  @IsString()
-  idName: string;
-  @IsString()
-  serialNumber: string;
-  @IsNumber()
-  ubications: number;
-  @IsEnum(STATUS_RESOURCE)
-  @IsNotEmpty()
-  status: STATUS_RESOURCE;
-  @IsNumber()
-  user_id: number;
+
+  @IsArray()
+  @ValidateNested()
+  @Type(() => ResourceDto)
+  resource: ResourceDto[];
+
+  /* @IsNumber()
+  user_id?: number; */
 }

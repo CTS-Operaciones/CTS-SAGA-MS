@@ -3,14 +3,13 @@ import { STATUS_ENTRIES } from 'src/common/constants/';
 export class CreateInventoryDto {
   @IsString()
   @IsNotEmpty()
-  Idname: string;
+  idName?: string;
 
   @IsString()
-  @IsNotEmpty()
-  serialNumber: string;
+  serialNumber?: string;
 
   @IsNumber()
-  user_id: number;
+  user_id?: number;
 
   @IsNumber()
   stateId: number;
@@ -23,5 +22,5 @@ export class CreateInventoryDto {
   status: STATUS_ENTRIES;
 
   @IsNumber()
-  ubications: number;
+  ubications?: number;
 }

@@ -3,7 +3,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AddRemoveService } from './add-remove.service';
 import { CreateAddRemoveDto } from './dto/create-add-remove.dto';
 import { UpdateAddRemoveDto } from './dto/update-add-remove.dto';
-import { FindOneWhitTermAndRelationDto, PaginationRelationsDto } from 'src/common';
+import { PaginationRelationsDto } from 'src/common';
 
 @Controller()
 export class AddRemoveController {
