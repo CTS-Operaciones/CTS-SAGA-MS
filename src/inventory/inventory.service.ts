@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
-import { Inventory, Ubications } from 'cts-entities';
+import { Inventory } from 'cts-entities';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 
@@ -31,38 +31,46 @@ export class InventoryService {
   ) {}
   async create(createInventoryDto: CreateInventoryDto) {
     try {
-      const { ubications, resourceId, stateId, ...CreateInventoryDto } =
-        createInventoryDto;
+      let resourceExist: any = null;
+      let ubicationExist: any = null;
+      let stateExist: any = null;
 
-      let resourceExist: any, ubicationExist: any, stateExist: any;
-      stateId
-        ? (stateExist = await this.stateServices.findOne(stateId))
-        : (stateExist = null);
+      if (
+        createInventoryDto.status ||
+        createInventoryDto.resourceId ||
+        createInventoryDto.ubications
+      ) {
+        if (createInventoryDto.stateId) {
+          stateExist = await this.stateServices.findOne(
+            createInventoryDto.stateId,
+          );
+        }
 
-      ubications
-        ? (ubicationExist = await this.ubicationsService.findOne(ubications))
-        : (ubicationExist = null);
+        if (createInventoryDto.ubications) {
+          ubicationExist = await this.ubicationsService.findOne(
+            createInventoryDto.ubications,
+          );
+        }
 
-      resourceId
-        ? (resourceExist = await this.resourcesService.findOne({
-            term: resourceId,
+        if (createInventoryDto.resourceId) {
+          const resourceData = await this.resourcesService.findOne({
+            term: createInventoryDto.resourceId,
             relations: true,
-          }))
-        : (resourceExist = null);
+          });
+          resourceExist = resourceData?.data?.[0] ?? null;
+        }
+      }
 
-      const data = resourceExist.data[0];
-
-      console.log(data);
-      //Agregar relacion con staff user_id
+      const inventoryToCreate = {
+        ...createInventoryDto,
+        state: stateExist ?? undefined,
+        ubications: ubicationExist ?? undefined,
+        resource: resourceExist ?? undefined,
+      };
 
       const result = await createResult(
         this.inventoryRepository,
-        {
-          ...CreateInventoryDto,
-          ubications: ubicationExist,
-          state: stateExist,
-          resource: data,
-        },
+        inventoryToCreate,
         Inventory,
       );
 

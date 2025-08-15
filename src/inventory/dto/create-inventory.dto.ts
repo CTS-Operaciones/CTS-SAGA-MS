@@ -2,7 +2,6 @@ import { IsEnum, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 import { STATUS_ENTRIES } from 'src/common/constants/';
 export class CreateInventoryDto {
   @IsString()
-  @IsNotEmpty()
   idName?: string;
 
   @IsString()
@@ -12,14 +11,14 @@ export class CreateInventoryDto {
   user_id?: number;
 
   @IsNumber()
-  stateId: number;
+  stateId?: number;
 
   @IsNumber()
   resourceId: number;
 
   @IsEnum(STATUS_ENTRIES)
   @IsNotEmpty()
-  status: STATUS_ENTRIES;
+  status?: STATUS_ENTRIES;
 
   @IsNumber()
   ubications?: number;

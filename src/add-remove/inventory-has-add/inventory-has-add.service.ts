@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { InventoryHasAddRemoval } from 'cts-entities';
-import { FindOneOptions, Repository } from 'typeorm';
+import { InventoryHasAddRemoval, STATUS_ENTRIES } from 'cts-entities';
+import { FindOneOptions, Repository, DataSource } from 'typeorm';
 
 import {
   deleteResult,
@@ -9,6 +9,7 @@ import {
   FindOneWhitTermAndRelationDto,
   paginationResult,
   restoreResult,
+  runInTransaction,
 } from 'src/common';
 
 import { CreateHasAddRemoveDto } from '../inventory-has-add/dto/create-inventory-has-add-remove.dto';
@@ -23,23 +24,32 @@ export class InventoryHasAddService {
     private readonly inventoryHasAddRemovalRepository: Repository<InventoryHasAddRemoval>,
     private readonly addRemoveService: AddRemoveService,
     private readonly inventoryService: InventoryService,
+    private readonly dataSource: DataSource,
   ) {}
   async create(createDto: CreateHasAddRemoveDto) {
     try {
-      const { idActa, resource } = createDto;
+      return runInTransaction(this.dataSource, async (queryRunner) => {
+        const { idActa, resource } = createDto;
 
-      for (const r of resource) {
-        const { idResource, quantity } = r;
-        /*TODO: Registrar en la base de datos de acuerdo a la quantity el inventario*/
-        for (let i = 0; i < quantity; i++) {
-          const registro = this.inventoryService.create({
-            idActa,
-            idRecurso,
-          });
+        for (const r of resource) {
+          const { idResource, quantity } = r;
+          for (let i = 0; i < quantity; i++) {
+            const registro = this.inventoryService.create({
+              status: STATUS_ENTRIES.AVAILABLE,
+              resourceId: idResource,
+            });
 
-          registrosACrear.push(registro);
+            const { id } = await registro;
+            await this.inventoryHasAddRemovalRepository.create({
+              addRemoval: { id: idActa },
+              inventory: { id: id },
+            });
+          }
+          return {
+            message: 'Inventario creado con exito',
+          };
         }
-      }
+      });
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);
@@ -133,5 +143,21 @@ export class InventoryHasAddService {
   }
   async deletePositions(id: number) {
     return await deleteResult(this.inventoryHasAddRemovalRepository, id);
+  }
+
+  async getResourcesByActa(id: number) {
+    try {
+      const result = await this.inventoryHasAddRemovalRepository.find({
+        select: {
+          inventory: { id: true },
+        },
+        where: { addRemoval: { id } },
+        relations: {
+          inventory: true,
+        },
+      });
+    } catch (error) {
+      throw ErrorManager.createSignatureError(error);
+    }
   }
 }

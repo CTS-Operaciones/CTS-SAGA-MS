@@ -27,8 +27,7 @@ export class ResourcesController {
     return this.resourcesService.getAllResourcesConcat();
   }
 
-  @MessagePattern('findOneResource')
-  findOne(
+  @MessagePattern('findOneResource') findOne(
     @Payload()
     { term, deletes, relations, allRelations }: FindOneWhitTermAndRelationDto,
   ) {

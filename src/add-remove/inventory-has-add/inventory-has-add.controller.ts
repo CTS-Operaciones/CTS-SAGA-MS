@@ -25,7 +25,10 @@ export class AddRemoveController {
       allRelations,
     });
   }
-
+  @MessagePattern('getResourcesByActa')
+  restore(@Payload() { id }: { id: number }) {
+    return this.addRemoveService.getResourcesByActa(id);
+  }
   @MessagePattern('removeInventoryHasAdd')
   remove(@Payload() { id }: { id: number }) {
     return this.addRemoveService.deletePositions(id);
