@@ -17,14 +17,14 @@ export class ResourcesController {
   create(@Payload() createResourceDto: CreateResourceDto) {
     return this.resourcesService.create(createResourceDto);
   }
+  @MessagePattern('getAllResourcesConcat')
+  getAllResourcesConcat() {
+    return this.resourcesService.getAllResourcesConcat();
+  }
 
   @MessagePattern('findAllResources')
   findAll(@Payload() pagination: PaginationRelationsDto) {
     return this.resourcesService.findAll(pagination);
-  }
-  @MessagePattern('getAllResourcesConcat')
-  getAllResourcesConcat() {
-    return this.resourcesService.getAllResourcesConcat();
   }
 
   @MessagePattern('findOneResource') findOne(

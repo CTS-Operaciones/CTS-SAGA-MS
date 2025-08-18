@@ -40,7 +40,7 @@ export class ResourcesService {
 
         Object.assign(createResourceDto, {
           clasification: claExist,
-          model: modelExist[0],
+          model: modelExist,
         });
       }
 
@@ -132,16 +132,14 @@ export class ResourcesService {
     const resources = await this.resourceRepository
       .createQueryBuilder('r')
       .select(
-        'concat(r.name, " - ", c.name, " - ", m.name, " - ", b.name) as name',
-        'r.id',
+        `r.id , concat(r."name",' - ', c."name", ' - ', m."name", ' - ', b."name") AS name `,
       )
-      .leftJoinAndSelect('r.clasification', 'c')
-      .leftJoinAndSelect('r.model', 'm')
-      .leftJoinAndSelect('m.brand', 'b')
+      .leftJoin('r.clasification', 'c')
+      .leftJoin('r.model', 'm')
+      .leftJoin('m.brand', 'b')
       .getRawMany();
     return resources;
   }
-  /*TODO:Busqueda de recursos por id*/
 
   async findOne({
     term,

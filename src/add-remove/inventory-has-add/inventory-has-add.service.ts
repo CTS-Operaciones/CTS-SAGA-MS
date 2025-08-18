@@ -29,6 +29,7 @@ export class InventoryHasAddService {
   async create(createDto: CreateHasAddRemoveDto) {
     try {
       return runInTransaction(this.dataSource, async (queryRunner) => {
+
         const { idActa, resource } = createDto;
 
         for (const r of resource) {
@@ -40,11 +41,12 @@ export class InventoryHasAddService {
             });
 
             const { id } = await registro;
-            await this.inventoryHasAddRemovalRepository.create({
+            await this.inventoryHasAddRemovalRepository.save({
               addRemoval: { id: idActa },
               inventory: { id: id },
             });
           }
+
           return {
             message: 'Inventario creado con exito',
           };
@@ -156,6 +158,8 @@ export class InventoryHasAddService {
           inventory: true,
         },
       });
+
+      return result;
     } catch (error) {
       throw ErrorManager.createSignatureError(error);
     }
