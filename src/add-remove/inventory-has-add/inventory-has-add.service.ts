@@ -29,7 +29,6 @@ export class InventoryHasAddService {
   async create(createDto: CreateHasAddRemoveDto) {
     try {
       return runInTransaction(this.dataSource, async (queryRunner) => {
-
         const { idActa, resource } = createDto;
 
         for (const r of resource) {
@@ -155,7 +154,9 @@ export class InventoryHasAddService {
         },
         where: { addRemoval: { id } },
         relations: {
-          inventory: true,
+          inventory: {
+            resource: true,
+          },
         },
       });
 
