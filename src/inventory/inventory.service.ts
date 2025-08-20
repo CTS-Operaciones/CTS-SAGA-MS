@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
-import { Inventory, Ubications } from 'cts-entities';
+import { Inventory, Resource, State, Ubications } from 'cts-entities';
 import { FindManyOptions, FindOneOptions, IsNull, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ADD_REMOVE } from '../common/constants/enums';
@@ -40,12 +40,13 @@ export class InventoryService {
 
       if (
         createInventoryDto.status ||
-        createInventoryDto.resourceId ||
+        createInventoryDto.resource ||
         createInventoryDto.ubications
       ) {
-        if (createInventoryDto.stateId) {
+        1;
+        if (createInventoryDto.state) {
           stateExist = await this.stateServices.findOne(
-            createInventoryDto.stateId,
+            createInventoryDto.state,
           );
         }
 
@@ -55,9 +56,9 @@ export class InventoryService {
           );
         }
 
-        if (createInventoryDto.resourceId) {
+        if (createInventoryDto.resource) {
           const resourceData = await this.resourcesService.findOne({
-            term: createInventoryDto.resourceId,
+            term: createInventoryDto.resource,
             relations: true,
           });
           resourceExist = resourceData?.data?.[0] ?? null;
@@ -160,9 +161,25 @@ export class InventoryService {
         ubicationExist = await this.ubicationsService.findOne(rest.ubications);
       }
 
+      let stateExist: State | undefined = undefined;
+      if (rest.state && rest.state !== inventory.state?.id) {
+        stateExist = await this.stateServices.findOne(rest.state);
+      }
+
+      let resourceExist: Resource | undefined = undefined;
+
+      if (rest.resource && rest.resource !== inventory.resource?.id) {
+        const resourceData = await this.resourcesService.findOne({
+          term: rest.resource,
+          relations: true,
+        });
+        resourceExist = resourceData?.data?.[0] ?? null;
+      }
       const result = await updateResult(this.inventoryRepository, id, {
-        ...inventory,
+        ...rest,
         ubications: ubicationExist,
+        state: stateExist,
+        resource: resourceExist,
       });
       return result;
     } catch (error) {

@@ -31,17 +31,22 @@ export class AddRemoveService {
   async create(createAddRemoveDto: CreateAddRemoveDto) {
     try {
       return runInTransaction(this.dataSource, async (queryRunner) => {
-        const { type, ...rest } = createAddRemoveDto;
+        const { type, motive, observations } = createAddRemoveDto;
 
         const addRemove = await createResult(
           this.addRemovalRepository,
           {
             ...createAddRemoveDto,
-            type: createAddRemoveDto.type,
+            type: type,
+            motive: motive,
+            observations: observations,
           },
           addRemoval,
           queryRunner,
         );
+
+        /** TODO: Agregar la funcion de creacion de firmas */
+
         return addRemove;
       });
     } catch (error) {

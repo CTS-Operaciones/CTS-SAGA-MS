@@ -11,10 +11,10 @@ export class CreateInventoryDto {
   user_id?: number;
 
   @IsNumber()
-  stateId?: number;
+  state?: number;
 
   @IsNumber()
-  resourceId: number;
+  resource: number;
 
   @IsEnum(STATUS_ENTRIES)
   @IsNotEmpty()

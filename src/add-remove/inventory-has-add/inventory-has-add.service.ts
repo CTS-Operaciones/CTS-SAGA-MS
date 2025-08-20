@@ -36,7 +36,7 @@ export class InventoryHasAddService {
           for (let i = 0; i < quantity; i++) {
             const registro = this.inventoryService.create({
               status: STATUS_ENTRIES.AVAILABLE,
-              resourceId: idResource,
+              resource: idResource,
             });
 
             const { id } = await registro;
@@ -149,9 +149,6 @@ export class InventoryHasAddService {
   async getResourcesByActa(id: number) {
     try {
       const result = await this.inventoryHasAddRemovalRepository.find({
-        select: {
-          inventory: { id: true },
-        },
         where: { addRemoval: { id } },
         relations: {
           inventory: {
