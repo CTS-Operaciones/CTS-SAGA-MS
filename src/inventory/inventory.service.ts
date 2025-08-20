@@ -2,8 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Inventory } from 'cts-entities';
-import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, IsNull, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ADD_REMOVE } from '../common/constants/enums';
 
 import {
   createResult,
@@ -19,6 +20,7 @@ import { StateService } from 'src/state/state.service';
 import { UbicationsService } from 'src/ubications/ubications.service';
 import { ResourcesService } from 'src/resources/resources.service';
 import { aumentarStock, disminuirStock } from 'src/common/helpers/modifyStock';
+import { generate, throwError } from 'rxjs';
 
 @Injectable()
 export class InventoryService {
@@ -81,7 +83,10 @@ export class InventoryService {
     }
   }
 
-  async findAll(pagination: PaginationFilterAssigmentsDto<Inventory>) {
+  async findAll(
+    pagination: PaginationFilterAssigmentsDto<Inventory>,
+    type = ADD_REMOVE,
+  ) {
     try {
       const option: FindManyOptions<Inventory> = {};
       if (pagination.relations)
@@ -161,10 +166,19 @@ export class InventoryService {
         term: id,
         relations: true,
       });
-      console.log(inventory.data[0].ubications);
+
+      const ubi = inventory?.data?.[0]?.ubications?.[0]?.id;
+
+      if (!ubi || ubi === null) {
+        return new ErrorManager({
+          code: 'NOT_FOUND',
+          message: 'Ubicacion no encontrada',
+        });
+      }
+
       if (
         rest.ubications &&
-        rest.ubications !== inventory.data[0].ubications.id
+        rest.ubications !== inventory.data[0].ubications[0].id
       ) {
         const ubicationExist = await this.findOne({
           term: rest.ubications,
