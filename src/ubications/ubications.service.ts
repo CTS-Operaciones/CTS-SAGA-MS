@@ -48,11 +48,11 @@ export class UbicationsService {
     }
   }
 
-  findOne(id: number) {
+  findOne(term: number) {
     try {
       const result = findOneByTerm({
         repository: this.ubicationsRepository,
-        term: id,
+        term,
       });
       return result;
     } catch (error) {

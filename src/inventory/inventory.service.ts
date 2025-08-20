@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
-import { Inventory } from 'cts-entities';
+import { Inventory, Ubications } from 'cts-entities';
 import { FindManyOptions, FindOneOptions, IsNull, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ADD_REMOVE } from '../common/constants/enums';
@@ -10,6 +10,7 @@ import {
   createResult,
   deleteResult,
   ErrorManager,
+  findOneByTerm,
   FindOneWhitTermAndRelationDto,
   PaginationFilterAssigmentsDto,
   paginationResult,
@@ -20,7 +21,7 @@ import { StateService } from 'src/state/state.service';
 import { UbicationsService } from 'src/ubications/ubications.service';
 import { ResourcesService } from 'src/resources/resources.service';
 import { aumentarStock, disminuirStock } from 'src/common/helpers/modifyStock';
-import { generate, throwError } from 'rxjs';
+import { find, generate, throwError } from 'rxjs';
 
 @Injectable()
 export class InventoryService {
@@ -118,7 +119,6 @@ export class InventoryService {
   }: FindOneWhitTermAndRelationDto) {
     try {
       const option: FindOneOptions<Inventory> = {
-        where: { id: +term },
         relations: {
           ubications: true,
           state: true,
@@ -128,30 +128,17 @@ export class InventoryService {
           },
         },
       };
-      if (relations) {
-        option.relations = {
-          ...option.relations,
-          ubications: true,
-          resource: true,
-        };
-      }
-      if (allRelations) {
-        option.relations = {
-          ubications: true,
-          state: true,
-          resource: {
-            clasification: true,
-            model: true,
-          },
-        };
-      }
+
       if (deletes) {
         option.withDeleted = true;
       }
-      const result = await paginationResult(this.inventoryRepository, {
-        all: true,
+
+      const result = await findOneByTerm({
+        repository: this.inventoryRepository,
         options: option,
+        term,
       });
+
       return result;
     } catch (error) {
       console.log(error);
@@ -167,31 +154,16 @@ export class InventoryService {
         relations: true,
       });
 
-      const ubi = inventory?.data?.[0]?.ubications?.[0]?.id;
+      let ubicationExist: Ubications | undefined = undefined;
 
-      if (!ubi || ubi === null) {
-        return new ErrorManager({
-          code: 'NOT_FOUND',
-          message: 'Ubicacion no encontrada',
-        });
+      if (rest.ubications && rest.ubications !== inventory.ubications?.id) {
+        ubicationExist = await this.ubicationsService.findOne(rest.ubications);
       }
 
-      if (
-        rest.ubications &&
-        rest.ubications !== inventory.data[0].ubications[0].id
-      ) {
-        const ubicationExist = await this.findOne({
-          term: rest.ubications,
-        });
-        inventory.data[0].ubications[0] = ubicationExist;
-      }
-      Object.assign(inventory, rest);
-      console.log(inventory[0].data);
-      const result = await updateResult(
-        this.inventoryRepository,
-        id,
-        inventory[0].data,
-      );
+      const result = await updateResult(this.inventoryRepository, id, {
+        ...inventory,
+        ubications: ubicationExist,
+      });
       return result;
     } catch (error) {
       console.log(error);
