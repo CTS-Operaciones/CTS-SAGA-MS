@@ -166,4 +166,56 @@ export class AddRemoveService {
       throw ErrorManager.createSignatureError(error);
     }
   }
+
+  async getChildrenByResource(idActa: number) {
+    // Traemos todos los inventarios asociados a ese acta
+    const rawInventories = await this.addRemovalRepository
+      .createQueryBuilder('add')
+      .leftJoin('add.inventoryHasAddRemoval', 'ihr')
+      .leftJoin('ihr.inventory', 'inv')
+      .leftJoin('inv.resource', 'res')
+      .select([
+        'res.id AS resourceId',
+        'res.name AS resourceName',
+        'inv.id AS inventoryId',
+        'inv.idName AS idName',
+        'inv.serialNumber AS serialNumber',
+        'inv.status AS status',
+        'inv.user_id AS userId',
+        'inv.stateId AS stateId',
+        'inv.resourceId AS resourceId',
+        'inv.ubicationsId AS ubicationsId',
+      ])
+      .where('add.id = :idActa', { idActa })
+      .getRawMany();
+
+    const groupedByResource = rawInventories.reduce(
+      (acc, row) => {
+        const resourceId = row.resourceid;
+        if (!acc[resourceId]) {
+          acc[resourceId] = {
+            resourceId: resourceId,
+            resourceName: row.resourcename,
+            childrens: [],
+          };
+        }
+
+        acc[resourceId].childrens.push({
+          inventoryId: row.inventoryid,
+          idName: row.idname,
+          serialNumber: row.serialnumber,
+          status: row.status,
+          userId: row.userid,
+          stateId: row.stateid,
+          resourceId: row.resourceid,
+          ubicationsId: row.ubicationsid,
+        });
+
+        return acc;
+      },
+      {} as Record<number, any>,
+    );
+
+    return Object.values(groupedByResource);
+  }
 }

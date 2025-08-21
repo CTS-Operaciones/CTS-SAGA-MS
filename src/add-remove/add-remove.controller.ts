@@ -41,4 +41,9 @@ export class AddRemoveController {
   remove(@Payload() { id }: { id: number }) {
     return this.addRemoveService.remove(id);
   }
+
+  @MessagePattern('getChildrenByResource')
+  restore(@Payload() { id }: { id: number }) {
+    return this.addRemoveService.getChildrenByResource(id);
+  }
 }

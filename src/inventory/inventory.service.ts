@@ -191,7 +191,8 @@ export class InventoryService {
   async remove(id: number) {
     try {
       await disminuirStock(id);
-      return await deleteResult(this.inventoryRepository, id);
+      const result = await this.inventoryRepository.delete(id);
+      return result;
     } catch (error) {
       throw ErrorManager.createSignatureError(error);
     }
