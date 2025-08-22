@@ -12,6 +12,7 @@ import {
   ErrorManager,
   findOneByTerm,
   FindOneWhitTermAndRelationDto,
+  msgError,
   PaginationFilterAssigmentsDto,
   paginationResult,
   updateResult,
@@ -55,21 +56,35 @@ export class InventoryService {
             createInventoryDto.ubications,
           );
         }
+      }
+      if (!createInventoryDto.resource) {
+        throw throwError(
+          () =>
+            new Error(
+              'El recurso es obligatorio para la creacion del inventario',
+            ),
+        );
+      }
+      if (createInventoryDto.resource) {
+        const resourceData = await this.resourcesService.findOne({
+          term: createInventoryDto.resource,
+          relations: true,
+        });
+        resourceExist = resourceData?.data?.[0] ?? null;
+      }
 
-        if (createInventoryDto.resource) {
-          const resourceData = await this.resourcesService.findOne({
-            term: createInventoryDto.resource,
-            relations: true,
-          });
-          resourceExist = resourceData?.data?.[0] ?? null;
-        }
+      if (!resourceExist || resourceExist === null) {
+        throw new ErrorManager({
+          message: msgError('NOT_FOUND_RESOURCE'),
+          code: 'NOT_FOUND',
+        });
       }
 
       const inventoryToCreate = {
         ...createInventoryDto,
         state: stateExist ?? undefined,
         ubications: ubicationExist ?? undefined,
-        resource: resourceExist ?? undefined,
+        resource: resourceExist,
       };
 
       const result = await createResult(

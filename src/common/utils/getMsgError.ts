@@ -7,6 +7,7 @@ export const msgError = (
     // Posibles codigos de error
     // Generales
     NOT_FOUND: 'No se encontraron registros',
+    NOT_FOUND_RESOURCE: 'No se encontro el recurso',
 
     NO_VALUE: `No se obtuvo el valor de ${value}`,
 
@@ -60,4 +61,5 @@ export declare enum ErrorCode {
   DELETE_NOT_FOUND = 'DELETE_NOT_FOUND',
   ACTIVATE = 'ACTIVATE',
   DEACTIVATE = 'DEACTIVATE',
+  NOT_FOUND_RESOURCE = 'NOT_FOUND_RESOURCE',
 }

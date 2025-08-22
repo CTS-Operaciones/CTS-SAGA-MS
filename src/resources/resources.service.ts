@@ -180,6 +180,7 @@ export class ResourcesService {
       if (deletes) {
         options.withDeleted = true;
       }
+
       const result = await paginationResult(this.resourceRepository, {
         all: true,
         options,
