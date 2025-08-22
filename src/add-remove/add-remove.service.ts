@@ -168,12 +168,13 @@ export class AddRemoveService {
   }
 
   async getChildrenByResource(idActa: number) {
-    // Traemos todos los inventarios asociados a ese acta
     const rawInventories = await this.addRemovalRepository
       .createQueryBuilder('add')
       .leftJoin('add.inventoryHasAddRemoval', 'ihr')
       .leftJoin('ihr.inventory', 'inv')
       .leftJoin('inv.resource', 'res')
+      .leftJoin('inv.ubications', 'ubi')
+      .withDeleted()
       .select([
         'res.id AS resourceId',
         'res.name AS resourceName',
@@ -185,6 +186,8 @@ export class AddRemoveService {
         'inv.stateId AS stateId',
         'inv.resourceId AS resourceId',
         'inv.ubicationsId AS ubicationsId',
+        'ubi.id AS ubicationsId',
+        'ubi.ubications AS ubicationsName',
       ])
       .where('add.id = :idActa', { idActa })
       .getRawMany();
@@ -209,6 +212,7 @@ export class AddRemoveService {
           stateId: row.stateid,
           resourceId: row.resourceid,
           ubicationsId: row.ubicationsid,
+          ubicationsName: row.ubicationsname,
         });
 
         return acc;
