@@ -12,10 +12,14 @@ import {
   runInTransaction,
 } from 'src/common';
 
-import { CreateHasAddRemoveDto } from '../inventory-has-add/dto/create-inventory-has-add-remove.dto';
+import {
+  CreateHasAddRemoveDto,
+  CreateRemoveDto,
+} from '../inventory-has-add/dto/create-inventory-has-add-remove.dto';
 
 import { AddRemoveService } from '../add-remove.service';
 import { InventoryService } from 'src/inventory/inventory.service';
+import { aumentarStock, disminuirStock } from 'src/common/helpers/modifyStock';
 
 @Injectable()
 export class InventoryHasAddService {
@@ -33,19 +37,27 @@ export class InventoryHasAddService {
 
         for (const r of resource) {
           const { idResource, quantity } = r;
+
           for (let i = 0; i < quantity; i++) {
             const registro = this.inventoryService.create({
               status: STATUS_ENTRIES.AVAILABLE,
               resource: idResource,
             });
-
             const { id } = await registro;
             await this.inventoryHasAddRemovalRepository.save({
               addRemoval: { id: idActa },
               inventory: { id: id },
             });
           }
+          const resourceData = await this.addRemoveService.findOne({
+            term: idActa,
+          });
 
+          if (resourceData.type === 'ALTA') {
+            await aumentarStock(idResource, quantity);
+          } else if (resourceData.type === 'BAJA') {
+            await disminuirStock(idResource, quantity);
+          }
           return {
             message: 'Inventario creado con exito',
           };
@@ -55,6 +67,40 @@ export class InventoryHasAddService {
       console.log(error);
       throw ErrorManager.createSignatureError(error);
     }
+  }
+  /*************  ✨ Windsurf Command ⭐  *************/
+  /**
+   * Crear inventario relacionado con una acta de alta o baja
+   * @param createDto datos de la acta y los inventarios a relacionar
+   * @returns Promesa que se cumple si se relacionan los inventarios con exito
+   */
+  /*******  e936cb85-59ac-4f45-ab0b-d4918e2b39a7  *******/
+  async createRemove(createDto: CreateRemoveDto) {
+    try {
+      return runInTransaction(this.dataSource, async (queryRunner) => {
+        const { idActa, idInventory } = createDto;
+        //Buscar el inventario en el acta
+
+        const inventoryE = await this.findINventoryInActa(
+          idActa,
+          idInventory[0],
+        );
+
+        if (inventoryE === true) {
+          for (const i of idInventory) {
+            const inventoryExist = await this.inventoryService.findOne({
+              term: i,
+            });
+            if (inventoryExist) {
+              await this.inventoryHasAddRemovalRepository.save({
+                addRemoval: { id: idActa },
+                inventory: { id: i },
+              });
+            }
+          }
+        }
+      });
+    } catch (error) {}
   }
 
   async findOneByActa({
@@ -157,6 +203,19 @@ export class InventoryHasAddService {
         },
       });
 
+      return result;
+    } catch (error) {
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
+
+  async findINventoryInActa(id: number, inventoryId: number) {
+    try {
+      let result;
+      const isExist = await this.inventoryHasAddRemovalRepository.findOne({
+        where: { addRemoval: { id }, inventory: { id: inventoryId } },
+      });
+      isExist ? (result = true) : (result = false);
       return result;
     } catch (error) {
       throw ErrorManager.createSignatureError(error);

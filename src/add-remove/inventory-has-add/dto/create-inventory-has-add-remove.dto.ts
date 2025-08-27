@@ -5,6 +5,7 @@ import {
   IsNotEmpty,
   IsNumber,
   IsPositive,
+  IsString,
   ValidateNested,
 } from 'class-validator';
 
@@ -30,7 +31,15 @@ export class CreateHasAddRemoveDto {
   @ValidateNested()
   @Type(() => ResourceDto)
   resource: ResourceDto[];
+}
 
-  /* @IsNumber()
-  user_id?: number; */
+export class CreateRemoveDto {
+  @IsNumber()
+  idActa: number;
+
+  @IsString()
+  factura: number;
+
+  @IsArray()
+  idInventory: number[];
 }

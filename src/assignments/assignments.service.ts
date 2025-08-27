@@ -14,6 +14,9 @@ export class AssignmentsService {
     private readonly assignmentsRepository: Repository<Assignments>,
     private readonly dataSource: DataSource,
   ) {}
+
+  /*TODO: Corregir*/
+
   create(createAssignmentDto: CreateAssignmentDto) {
     try {
       return runInTransaction(this.dataSource, async (manager) => {
@@ -150,6 +153,17 @@ export class AssignmentsService {
   remove(id: number) {
     try {
       return deleteResult(this.assignmentsRepository, id);
+    } catch (error) {
+      console.log(error);
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
+  async finOneSimple(id: number) {
+    try {
+      const result = await this.assignmentsRepository.findOne({
+        where: { id },
+      });
+      return result;
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);

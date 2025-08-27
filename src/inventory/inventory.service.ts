@@ -205,10 +205,21 @@ export class InventoryService {
 
   async remove(id: number) {
     try {
-      await disminuirStock(id);
       const result = await this.inventoryRepository.delete(id);
       return result;
     } catch (error) {
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
+
+  async findOneSimple(id: number) {
+    try {
+      const result = await this.inventoryRepository.findOne({
+        where: { id },
+      });
+      return result;
+    } catch (error) {
+      console.log(error);
       throw ErrorManager.createSignatureError(error);
     }
   }

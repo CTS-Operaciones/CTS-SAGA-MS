@@ -31,7 +31,7 @@ export class AddRemoveService {
   async create(createAddRemoveDto: CreateAddRemoveDto) {
     try {
       return runInTransaction(this.dataSource, async (queryRunner) => {
-        const { type, motive, observations } = createAddRemoveDto;
+        const { type, motive, observations, factura } = createAddRemoveDto;
 
         const addRemove = await createResult(
           this.addRemovalRepository,
@@ -40,6 +40,7 @@ export class AddRemoveService {
             type: type,
             motive: motive,
             observations: observations,
+            factura: factura,
           },
           addRemoval,
           queryRunner,

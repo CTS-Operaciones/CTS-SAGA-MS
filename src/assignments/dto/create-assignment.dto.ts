@@ -10,14 +10,25 @@ export class CreateAssignmentDto {
   @IsString()
   @IsNotEmpty()
   name: string;
+
   @IsString()
   @IsNotEmpty()
   date: string;
+
   @IsString()
+  comments: string;
+
+  @IsNumber()
   @IsNotEmpty()
-  hours: string;
-  @IsString()
-  accessories: string;
+  @IsPositive()
+  project_id: number;
+
+  /*TODO: VERIFICAR SI AGREGAR EL USER O  LAS FIRMAS*/
+  @IsNumber()
+  @IsNotEmpty()
+  @IsPositive()
+  user_id: number;
+
   @IsEnum(ASSIGNMENT_STATUS)
   type: ASSIGNMENT_STATUS;
 }
