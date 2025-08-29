@@ -7,6 +7,7 @@ import {
   ErrorManager,
   findOneByTerm,
   FindOneWhitTermAndRelationDto,
+  msgError,
   PaginationDto,
   PaginationRelationsDto,
   paginationResult,
@@ -234,12 +235,27 @@ export class ResourcesService {
 
   async getInventoriesByResource(idResource: number) {
     try {
-      const result = await this.resourceRepository.findOne({
+      const one = await this.resourceRepository.find({
         where: { id: idResource },
-        relations: ['inventory'],
       });
-      console.log(result);
-      return result;
+
+      const result = await this.resourceRepository
+        .createQueryBuilder('resource')
+        .leftJoinAndSelect('resource.inventory', 'inventory')
+        .where('resource.id = :id', { id: idResource })
+        .andWhere('resource.deleted_at IS NULL')
+        .andWhere('inventory.deleted_at IS NULL')
+        .andWhere('inventory."serialNumber" IS NOT NULL')
+        .getRawMany();
+
+      if (!result) {
+        throw new ErrorManager({
+          code: 'NOT_FOUND',
+          message: msgError('NOT_FOUND'),
+        });
+      }
+
+      return one;
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);

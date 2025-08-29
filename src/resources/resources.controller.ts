@@ -23,7 +23,7 @@ export class ResourcesController {
   }
 
   @MessagePattern('findInventoriesByResource')
-  findInventoriesByResource(@Payload() { idResource }: { idResource: number }) {
+  findInventoriesByResource(@Payload() { id: idResource }: { id: number }) {
     return this.resourcesService.getInventoriesByResource(idResource);
   }
 
