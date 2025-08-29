@@ -22,6 +22,11 @@ export class ResourcesController {
     return this.resourcesService.getAllResourcesConcat();
   }
 
+  @MessagePattern('findInventoriesByResource')
+  findInventoriesByResource(@Payload() { idResource }: { idResource: number }) {
+    return this.resourcesService.getInventoriesByResource(idResource);
+  }
+
   @MessagePattern('findAllResources')
   findAll(@Payload() pagination: PaginationRelationsDto) {
     return this.resourcesService.findAll(pagination);

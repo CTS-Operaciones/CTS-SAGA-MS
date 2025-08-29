@@ -1,10 +1,9 @@
-import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { InventoryHasAssigment } from 'cts-entities';
+import { admissionHasInventory} from 'cts-entities';
 import { FindOneOptions, Repository } from 'typeorm';
 
 import {
-  createResult,
+
   deleteResult,
   ErrorManager,
   FindOneWhitTermAndRelationDto,
@@ -13,20 +12,20 @@ import {
   STATUS_ENTRIES,
 } from 'src/common';
 
-import { CreateHasAssignDto } from '../inventory-has-assign/dto/create-inventory-has-assign.dto';
+import { CreateHasAdmissionDto} from './dto/create-inventory-has-admissions.discharge.dto';
 
-import { AssignmentsService } from '../assignments.service';
+import { AdmissionsDischargesService} from '../admissions-discharges.service';
 
 import { InventoryService } from '../../inventory/inventory.service';
 
-export class InventoryHasAssignService {
+export class InventoryHasAdmissionService {
   constructor(
-    @InjectRepository(InventoryHasAssigment)
-    private readonly inventoryHasAssignRepository: Repository<InventoryHasAssigment>,
-    private readonly assignmentsService: AssignmentsService,
+    @InjectRepository(admissionHasInventory)
+    private readonly inventoryHasAdmissionRepository: Repository<admissionHasInventory>,
+    private readonly admissionService: AdmissionsDischargesService,
     private readonly inventoryService: InventoryService,
   ) {}
-  async create(createDto: CreateHasAssignDto) {
+  async create(createDto: CreateHasAdmissionDto) {
     try {
       const { idActa, idInventory } = createDto;
 
@@ -40,7 +39,7 @@ export class InventoryHasAssignService {
       const results = await Promise.all(
         idInventory.map(async (i) => {
           const inventoryExist = await this.inventoryService.findOneSimple(i);
-          const actaExist = await this.assignmentsService.finOneSimple(idActa);
+          const actaExist = await this.admissionService.findOneSimple(idActa);
           if (!inventoryExist || !actaExist) {
             throw new ErrorManager({
               message: `Id ${i} o ${idActa} no existen`,
@@ -57,17 +56,17 @@ export class InventoryHasAssignService {
             });
           }
 
-          const result = await this.inventoryHasAssignRepository.save({
-            assignmentsReturns: actaExist,
+          const result = await this.inventoryHasAdmissionRepository.save({
+            AdmissionsDischarges: actaExist,
             inventory: inventoryExist,
           });
 
-          if (actaExist.type === 'DEVOLUCION') {
+          if (actaExist.type === 'DISCHARGE') {
             await this.inventoryService.updateSatusInventory(
               STATUS_ENTRIES.AVAILABLE,
               idActa,
             );
-          } else if (actaExist.type === 'ASIGNACION') {
+          } else if (actaExist.type === 'ADMISSION') {
             await this.inventoryService.updateSatusInventory(
               STATUS_ENTRIES.IN_USE,
               idActa,
@@ -92,9 +91,9 @@ export class InventoryHasAssignService {
     allRelations,
   }: FindOneWhitTermAndRelationDto) {
     try {
-      const options: FindOneOptions<InventoryHasAssigment> = {
-        where: { assignmentsReturns: { id: +term } },
-        relations: { assignmentsReturns: true },
+      const options: FindOneOptions<admissionHasInventory> = {
+        where: { AdmissionsDischarges: { id: +term } },
+        relations: { AdmissionsDischarges: true },
       };
 
       if (relations) {
@@ -123,12 +122,12 @@ export class InventoryHasAssignService {
         options.withDeleted = true;
       }
 
-      const result = await paginationResult(this.inventoryHasAssignRepository, {
+      const result = await paginationResult(this.inventoryHasAdmissionRepository, {
         all: true,
         options,
       });
 
-      const data = result.data.map((el: InventoryHasAssigment) => {
+      const data = result.data.map((el: admissionHasInventory) => {
         return {
           inventory: !relations
             ? {
@@ -151,7 +150,7 @@ export class InventoryHasAssignService {
       return {
         ...result,
         data: {
-          assign: result.data[0].assignmentsReturns.id,
+          admissions: result.data[0].AdmissionsDischarges.id,
           inventory_id: data,
         },
       };
@@ -163,21 +162,21 @@ export class InventoryHasAssignService {
 
   async restore(id: number) {
     try {
-      return await restoreResult(this.inventoryHasAssignRepository, id);
+      return await restoreResult(this.inventoryHasAdmissionRepository, id);
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);
     }
   }
   async delete(id: number) {
-    return await deleteResult(this.inventoryHasAssignRepository, id);
+    return await deleteResult(this.inventoryHasAdmissionRepository, id);
   }
 
   async findInventoryByActa(idActa: number, idInventory: number) {
     try {
-      const result = await this.inventoryHasAssignRepository.findOne({
+      const result = await this.inventoryHasAdmissionRepository.findOne({
         where: {
-          assignmentsReturns: { id: idActa },
+          AdmissionsDischarges: { id: idActa },
           inventory: { id: idInventory },
         },
       });

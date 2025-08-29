@@ -5,10 +5,9 @@ import { Inventory, Resource, State, Ubications } from 'cts-entities';
 import { FindManyOptions, FindOneOptions, IsNull, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ADD_REMOVE } from '../common/constants/enums';
-
+import { AddRemoveService } from '../add-remove/add-remove.service';
 import {
   createResult,
-  deleteResult,
   ErrorManager,
   findOneByTerm,
   FindOneWhitTermAndRelationDto,
@@ -17,12 +16,11 @@ import {
   paginationResult,
   updateResult,
 } from 'src/common';
-
+import { STATUS_ENTRIES } from 'src/common/constants/';
 import { StateService } from 'src/state/state.service';
 import { UbicationsService } from 'src/ubications/ubications.service';
 import { ResourcesService } from 'src/resources/resources.service';
-import { aumentarStock, disminuirStock } from 'src/common/helpers/modifyStock';
-import { find, generate, throwError } from 'rxjs';
+import { throwError } from 'rxjs';
 
 @Injectable()
 export class InventoryService {
@@ -217,6 +215,25 @@ export class InventoryService {
       const result = await this.inventoryRepository.findOne({
         where: { id },
       });
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
+
+  async updateSatusInventory(status: STATUS_ENTRIES, id: number) {
+    //Cambiar solo el status_entries del inventario
+    try {
+      const result = await this.inventoryRepository.update(id, {
+        status: status,
+      });
+      if (result.affected === 0) {
+        throw new ErrorManager({
+          message: msgError('NOT_FOUND'),
+          code: 'NOT_FOUND',
+        });
+      }
       return result;
     } catch (error) {
       console.log(error);

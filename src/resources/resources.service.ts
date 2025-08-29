@@ -231,4 +231,18 @@ export class ResourcesService {
       throw ErrorManager.createSignatureError(error);
     }
   }
+
+  async getInventoriesByResource(idResource: number) {
+    try {
+      const result = await this.resourceRepository.findOne({
+        where: { id: idResource },
+        relations: ['inventory'],
+      });
+      console.log(result);
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
 }

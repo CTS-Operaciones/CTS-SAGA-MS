@@ -3,30 +3,42 @@ import { CreateAdmissionsDischargeDto } from './dto/create-admissions-discharge.
 import { UpdateAdmissionsDischargeDto } from './dto/update-admissions-discharge.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { admissionsDischarges } from 'cts-entities';
-import { FindManyOptions, Repository } from 'typeorm';
+import { DataSource, FindManyOptions, Repository } from 'typeorm';
 
-import { createResult, deleteResult, ErrorManager, findOneByTerm, FindOneWhitTermAndRelationDto, PaginationRelationsDto, paginationResult, updateResult } from 'src/common';
+import {
+  createResult,
+  deleteResult,
+  ErrorManager,
+  findOneByTerm,
+  FindOneWhitTermAndRelationDto,
+  PaginationRelationsDto,
+  paginationResult,
+  runInTransaction,
+  updateResult,
+} from 'src/common';
 
 @Injectable()
 export class AdmissionsDischargesService {
   constructor(
     @InjectRepository(admissionsDischarges)
     private readonly admissionsDischargeRepository: Repository<admissionsDischarges>,
-
-  ) { }
+    private readonly dataSource: DataSource,
+  ) {}
   async create(createAdmissionsDischargeDto: CreateAdmissionsDischargeDto) {
     try {
-
-      const result = await createResult(
-        this.admissionsDischargeRepository,
-        {
-          ...createAdmissionsDischargeDto,
-        },
-        admissionsDischarges
-      );
-      return result
-    }
-    catch (error) {
+      return runInTransaction(this.dataSource, async (manager) => {
+        const { type, ...rest } = createAdmissionsDischargeDto;
+        const result = await createResult(
+          this.admissionsDischargeRepository,
+          {
+            ...rest,
+            type,
+          },
+          admissionsDischarges,
+        );
+        return result;
+      });
+    } catch (error) {
       throw ErrorManager.createSignatureError(error);
     }
   }
@@ -51,8 +63,7 @@ export class AdmissionsDischargesService {
         },
       );
       return result;
-    }
-    catch (error) {
+    } catch (error) {
       throw ErrorManager.createSignatureError(error);
     }
   }
@@ -73,33 +84,44 @@ export class AdmissionsDischargesService {
         term: id.term,
         options: option,
       });
-    }
-    catch (error) {
+    } catch (error) {
       throw ErrorManager.createSignatureError(error);
     }
   }
 
   async update(UpdateAdmissionsDischargeDto: UpdateAdmissionsDischargeDto) {
     try {
-      const { id, ...res } = UpdateAdmissionsDischargeDto
+      const { id, ...res } = UpdateAdmissionsDischargeDto;
       const admissionsDischargeExist = await findOneByTerm({
         repository: this.admissionsDischargeRepository,
-        term: id
+        term: id,
       });
       Object.assign(admissionsDischargeExist, res);
 
-      const result = await updateResult(this.admissionsDischargeRepository, id, admissionsDischargeExist)
-      return result
-    } catch (error) {
-
-    }
+      const result = await updateResult(
+        this.admissionsDischargeRepository,
+        id,
+        admissionsDischargeExist,
+      );
+      return result;
+    } catch (error) {}
   }
 
   remove(id: number) {
     try {
-      return deleteResult(this.admissionsDischargeRepository, id)
+      return deleteResult(this.admissionsDischargeRepository, id);
+    } catch (error) {
+      throw ErrorManager.createSignatureError(error);
     }
-    catch (error) {
+  }
+
+  async findOneSimple(id: number) {
+    try {
+      const result = await this.admissionsDischargeRepository.findOne({
+        where: { id },
+      });
+      return result;
+    } catch (error) {
       throw ErrorManager.createSignatureError(error);
     }
   }
