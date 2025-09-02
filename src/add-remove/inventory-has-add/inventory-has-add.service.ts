@@ -19,7 +19,8 @@ import {
 
 import { AddRemoveService } from '../add-remove.service';
 import { InventoryService } from 'src/inventory/inventory.service';
-import { aumentarStock, disminuirStock } from 'src/common/helpers/modifyStock';
+
+
 
 @Injectable()
 export class InventoryHasAddService {
@@ -49,15 +50,12 @@ export class InventoryHasAddService {
               inventory: { id: id },
             });
           }
+
+          await this.inventoryService.aumentarStock(idResource, quantity);
           const resourceData = await this.addRemoveService.findOne({
             term: idActa,
           });
 
-          if (resourceData.type === 'ALTA') {
-            await aumentarStock(idResource, quantity);
-          } else if (resourceData.type === 'BAJA') {
-            await disminuirStock(idResource, quantity);
-          }
           return {
             message: 'Inventario creado con exito',
           };
@@ -79,24 +77,24 @@ export class InventoryHasAddService {
     try {
       return runInTransaction(this.dataSource, async (queryRunner) => {
         const { idActa, idInventory } = createDto;
-        //Buscar el inventario en el acta
 
-        const inventoryE = await this.findINventoryInActa(
-          idActa,
-          idInventory[0],
-        );
+        for (const i of idInventory) {
+          const inventoryE = await this.findINventoryInActa(idActa, i);
 
-        if (inventoryE === true) {
-          for (const i of idInventory) {
-            const inventoryExist = await this.inventoryService.findOne({
-              term: i,
+          if (inventoryE) {
+            throw new ErrorManager({
+              message: `El inventario con ID ${i} ya existe en otra acta`,
+              code: 'BAD_REQUEST',
             });
-            if (inventoryExist) {
-              await this.inventoryHasAddRemovalRepository.save({
-                addRemoval: { id: idActa },
-                inventory: { id: i },
-              });
-            }
+          }
+          const inventoryExist = await this.inventoryService.findOne({
+            term: i,
+          });
+          if (inventoryExist) {
+            await this.inventoryHasAddRemovalRepository.save({
+              addRemoval: { id: idActa },
+              inventory: { id: i },
+            });
           }
         }
       });

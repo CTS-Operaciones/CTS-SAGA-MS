@@ -5,7 +5,7 @@ import { CreateHasAddRemoveDto}  from './dto/create-inventory-has-add-remove.dto
 import { FindOneWhitTermAndRelationDto } from 'src/common';
 
 @Controller()
-export class AddRemoveController {
+export class InventoryHasAddController {
   constructor(private readonly addRemoveService: InventoryHasAddService) {}
 
   @MessagePattern('createInventoryHasAdd')

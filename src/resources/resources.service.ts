@@ -8,7 +8,6 @@ import {
   findOneByTerm,
   FindOneWhitTermAndRelationDto,
   msgError,
-  PaginationDto,
   PaginationRelationsDto,
   paginationResult,
   updateResult,
@@ -23,7 +22,7 @@ import { Resource } from 'cts-entities';
 export class ResourcesService {
   constructor(
     @InjectRepository(Resource)
-    private resourceRepository: Repository<Resource>,
+    private readonly resourceRepository: Repository<Resource>,
     private readonly clasificationsService: ClasificationsService,
     private readonly modelsService: ModelsService,
   ) {}
@@ -144,9 +143,9 @@ export class ResourcesService {
 
   async findOne({
     term,
-    deletes,
-    relations,
-    allRelations,
+    deletes = false,
+    relations = false,
+    allRelations = false,
   }: FindOneWhitTermAndRelationDto) {
     try {
       const options: FindOneOptions<Resource> = {
@@ -182,8 +181,9 @@ export class ResourcesService {
         options.withDeleted = true;
       }
 
-      const result = await paginationResult(this.resourceRepository, {
-        all: true,
+      const result = await findOneByTerm({
+        repository: this.resourceRepository,
+        term,
         options,
       });
       return result;
@@ -197,27 +197,23 @@ export class ResourcesService {
       const { id, ...res } = updateResourceDto;
       const resource = await this.findOne({ term: id, relations: true });
 
-      if (res.modelId && res.modelId !== resource.data[0].model.id) {
+      if (res.modelId && res.modelId !== resource.model.id) {
         const modelExist = await this.modelsService.findOne({
           term: res.modelId,
         });
-        resource.data[0].model[0] = modelExist;
+        resource.model[0] = modelExist;
       }
       if (
         res.clasificationId &&
-        res.clasificationId !== resource.data[0].clasification.id
+        res.clasificationId !== resource.clasification.id
       ) {
         const claExist = await this.clasificationsService.findOne(
           res.clasificationId,
         );
-        resource.data[0].clasification = claExist;
+        resource.clasification = claExist;
       }
       Object.assign(resource, res);
-      const result = await updateResult(
-        this.resourceRepository,
-        id,
-        resource.data[0],
-      );
+      const result = await updateResult(this.resourceRepository, id, resource);
       return result;
     } catch (error) {
       console.log(error);
@@ -235,12 +231,13 @@ export class ResourcesService {
 
   async getInventoriesByResource(idResource: number) {
     try {
-      const one = await this.resourceRepository.find({
+      const one = await this.resourceRepository.findOne({
         where: { id: idResource },
       });
 
       const result = await this.resourceRepository
         .createQueryBuilder('resource')
+        //.select('resource.id', 'i.id as idInventario')
         .leftJoinAndSelect('resource.inventory', 'inventory')
         .where('resource.id = :id', { id: idResource })
         .andWhere('resource.deleted_at IS NULL')
@@ -255,7 +252,7 @@ export class ResourcesService {
         });
       }
 
-      return one;
+      return result;
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);

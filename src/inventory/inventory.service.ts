@@ -2,10 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Inventory, Resource, State, Ubications } from 'cts-entities';
-import { FindManyOptions, FindOneOptions, IsNull, Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ADD_REMOVE } from '../common/constants/enums';
-import { AddRemoveService } from '../add-remove/add-remove.service';
 import {
   createResult,
   ErrorManager,
@@ -68,7 +67,7 @@ export class InventoryService {
           term: createInventoryDto.resource,
           relations: true,
         });
-        resourceExist = resourceData?.data?.[0] ?? null;
+        resourceExist = resourceData ?? null;
       }
 
       if (!resourceExist || resourceExist === null) {
@@ -186,7 +185,7 @@ export class InventoryService {
           term: rest.resource,
           relations: true,
         });
-        resourceExist = resourceData?.data?.[0] ?? null;
+        resourceExist = resourceData ?? null;
       }
       const result = await updateResult(this.inventoryRepository, id, {
         ...rest,
@@ -239,6 +238,47 @@ export class InventoryService {
       console.log(error);
       throw ErrorManager.createSignatureError(error);
     }
+  }
+
+  //Aumentar stock
+
+  async aumentarStock(id: number, cant: number) {
+    const resource = await this.resourcesService.findOne({ term: id });
+
+    if (resource) {
+      resource.quatity + cant;
+    } else {
+      throw new ErrorManager({
+        code: 'NOT_FOUND',
+        message: msgError('NOT_FOUND'),
+      });
+    }
+
+    const result = await this.resourcesService.update({
+      id,
+      quatity: resource.quatity,
+    });
+    console.log(result);
+
+    return 'ok';
+  }
+
+  async disminuirStock(id: number, cant: number) {
+    const resource = await this.resourcesService.findOne({ term: id });
+    if (resource) {
+      resource.quatity - cant;
+    } else {
+      throw new ErrorManager({
+        code: 'NOT_FOUND',
+        message: msgError('NOT_FOUND'),
+      });
+    }
+
+    const result = await this.resourcesService.update({
+      id,
+      quatity: resource.quatity,
+    });
+    return 'ok';
   }
 }
 
