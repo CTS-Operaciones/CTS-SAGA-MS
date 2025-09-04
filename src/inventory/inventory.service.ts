@@ -2,11 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Inventory, Resource, State, Ubications } from 'cts-entities';
-import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
+import { FindManyOptions, FindOneOptions, QueryRunner, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ADD_REMOVE } from '../common/constants/enums';
 import {
   createResult,
+  deleteResult,
   ErrorManager,
   findOneByTerm,
   FindOneWhitTermAndRelationDto,
@@ -200,9 +201,13 @@ export class InventoryService {
     }
   }
 
-  async remove(id: number) {
+  async remove(id: number, queryrunner?: QueryRunner) {
     try {
-      const result = await this.inventoryRepository.delete(id);
+      const result = await deleteResult(
+        this.inventoryRepository,
+        id,
+        queryrunner,
+      );
       return result;
     } catch (error) {
       throw ErrorManager.createSignatureError(error);

@@ -37,11 +37,6 @@ export class AddRemoveController {
     return this.addRemoveService.update(updateAddRemoveDto);
   }
 
-  @MessagePattern('removeAddRemove')
-  remove(@Payload() { id }: { id: number }) {
-    return this.addRemoveService.remove(id);
-  }
-
   @MessagePattern('getChildrenByResource')
   restore(@Payload() { id }: { id: number }) {
     return this.addRemoveService.getChildrenByResource(id);

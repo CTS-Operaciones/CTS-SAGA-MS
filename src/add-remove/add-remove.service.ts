@@ -16,7 +16,9 @@ import {
   DataSource,
   FindManyOptions,
   FindOneOptions,
+  QueryRunner,
   Repository,
+  ReturningStatementNotSupportedError,
 } from 'typeorm';
 import { addRemoval } from 'cts-entities';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -159,9 +161,21 @@ export class AddRemoveService {
     }
   }
 
-  remove(id: number) {
+  async remove(id: number, queryRunner?: QueryRunner) {
     try {
-      return deleteResult(this.addRemovalRepository, id);
+      const search = await this.findOne({ term: id });
+      const idInventory = search.id;
+      console.log(idInventory);
+      if (search) {
+        const result = await deleteResult(
+          this.addRemovalRepository,
+          idInventory,
+          queryRunner,
+        );
+        return result;
+      } else {
+        return false;
+      }
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);

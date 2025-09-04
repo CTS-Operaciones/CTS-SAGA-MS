@@ -13,7 +13,7 @@ export class InventoryHasAddController {
     return this.addRemoveService.create(createAddRemoveDto);
   }
   @MessagePattern('getResourcesByActa')
-  restore(@Payload() { id }: { id: number }) {
+  get(@Payload() { id }: { id: number }) {
     return this.addRemoveService.getResourcesByActa(id);
   }
   @MessagePattern('findOneInventoryHasAdd')
@@ -31,6 +31,11 @@ export class InventoryHasAddController {
 
   @MessagePattern('removeInventoryHasAdd')
   remove(@Payload() { id }: { id: number }) {
-    return this.addRemoveService.deletePositions(id);
+    return this.addRemoveService.removeActa(id);
+  }
+
+  @MessagePattern('removeItemInventoryHasAdd')
+  restore(@Payload() { id }: { id: number }) {
+    return this.addRemoveService.removeItem(id);
   }
 }

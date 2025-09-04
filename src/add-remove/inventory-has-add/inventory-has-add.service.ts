@@ -219,4 +219,78 @@ export class InventoryHasAddService {
       throw ErrorManager.createSignatureError(error);
     }
   }
+  //Eliminar el acta completa y los items del inventario
+  async removeActa(id: number) {
+    try {
+      return runInTransaction(this.dataSource, async (queryRunner) => {
+        const acta = await this.addRemoveService.findOne({ term: id });
+
+        const search = await this.inventoryHasAddRemovalRepository.find({
+          where: { addRemoval: { id: acta.id } },
+          relations: { inventory: true },
+        });
+
+        for (const item of search) {
+          const { id, inventory } = item;
+          const idInventory = inventory.id;
+          console.log(idInventory);
+
+          await deleteResult(
+            this.inventoryHasAddRemovalRepository,
+            id,
+            queryRunner,
+          );
+
+          await this.inventoryService.remove(inventory.id, queryRunner);
+        }
+
+        const result = await this.addRemoveService.remove(id, queryRunner);
+
+        return result;
+      });
+    } catch (error) {
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
+  async removeItem(id: number) {
+    try {
+      return runInTransaction(this.dataSource, async (queryRunner) => {
+        const result = await this.inventoryHasAddRemovalRepository.find({
+          where: { id },
+          relations: { inventory: true },
+        });
+        const idInventory = result[0].inventory;
+        if (idInventory === null) {
+          throw new ErrorManager({
+            message:
+              'El recurso no se encuentra en el inventario o ya ha sido eliminado',
+            code: 'NOT_FOUND',
+          });
+        }
+        console.log(idInventory);
+        if (result) {
+          await deleteResult(
+            this.inventoryHasAddRemovalRepository,
+            id,
+            queryRunner,
+          );
+
+          await this.inventoryService.remove(
+            result[0].inventory.id,
+            queryRunner,
+          );
+        } else {
+          throw new ErrorManager({
+            message: 'NOT_FOUND',
+            code: 'NOT_FOUND',
+          });
+        }
+
+        return result;
+      });
+    } catch (error) {
+      console.log(error);
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
 }

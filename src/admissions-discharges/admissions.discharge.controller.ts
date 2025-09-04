@@ -3,11 +3,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AdmissionsDischargesService } from './admissions-discharges.service';
 import { CreateAdmissionsDischargeDto } from './dto/create-admissions-discharge.dto';
 import { UpdateAdmissionsDischargeDto } from './dto/update-admissions-discharge.dto';
-import {
-  FindOneWhitTermAndRelationDto,
-  PaginationDto,
-  PaginationRelationsDto,
-} from '../common';
+import { FindOneWhitTermAndRelationDto, PaginationDto } from '../common';
 @Controller()
 export class AdmissionsDischargesController {
   constructor(private readonly admissionsDischargesService: AdmissionsDischargesService) {}
