@@ -16,6 +16,8 @@ import {
   runInTransaction,
   updateResult,
 } from 'src/common';
+import { options } from 'joi';
+import { find } from 'rxjs';
 
 @Injectable()
 export class AdmissionsDischargesService {
@@ -45,45 +47,90 @@ export class AdmissionsDischargesService {
 
   async findAll(pagination: PaginationRelationsDto) {
     try {
-      const option: FindManyOptions<admissionsDischarges> = {};
-      /*  if (pagination.relations) option.relations = {
-        inventory: {
-          resource: {
-            clasification: true,
-            model: true
-          }
-        }
+      const options: FindManyOptions<admissionsDischarges> = {};
+      const { relations } = pagination;
+      if (pagination.relations) {
+        options.relations = {};
+      }
 
-      }; */
+      if (relations) {
+        options.relations = {
+          ...options.relations,
+          admissionsHasInventory: {
+            inventory: {
+              ubications: true,
+              resource: {
+                clasification: true,
+                model: {
+                  brand: true,
+                },
+              },
+            },
+          },
+        };
+      }
       const result = await paginationResult(
         this.admissionsDischargeRepository,
         {
           ...pagination,
-          options: option,
+          options,
         },
       );
       return result;
-    } catch (error) {
-      throw ErrorManager.createSignatureError(error);
-    }
+    } catch (error) {}
   }
 
-  async findOne(id: FindOneWhitTermAndRelationDto) {
+  async findOne({
+    term,
+    relations,
+    allRelations,
+    deletes,
+  }: FindOneWhitTermAndRelationDto) {
     try {
-      const option: FindManyOptions<admissionsDischarges> = {};
-      /*   if (id.relations) option.relations = {
-        inventory: {
-          resource: {
-            clasification: true,
-            model: true
-          }
-        }
-      } */
+      const options: FindManyOptions<admissionsDischarges> = {};
+      if (relations) {
+        options.relations = {
+          ...options.relations,
+          admissionsHasInventory: {
+            inventory: {
+              ubications: true,
+              resource: {
+                clasification: true,
+                model: {
+                  brand: true,
+                },
+              },
+            },
+          },
+        };
+      }
+      if (allRelations) {
+        options.relations = {
+          ...options.relations,
+          admissionsHasInventory: {
+            inventory: {
+              ubications: true,
+              state: true,
+              resource: {
+                clasification: true,
+                model: {
+                  brand: true,
+                },
+              },
+            },
+          },
+        };
+      }
+
+      if (deletes) {
+        options.withDeleted = true;
+      }
       const result = findOneByTerm({
         repository: this.admissionsDischargeRepository,
-        term: id.term,
-        options: option,
+        term: term,
+        options: options,
       });
+      return result;
     } catch (error) {
       throw ErrorManager.createSignatureError(error);
     }
@@ -92,18 +139,22 @@ export class AdmissionsDischargesService {
   async update(UpdateAdmissionsDischargeDto: UpdateAdmissionsDischargeDto) {
     try {
       const { id, ...res } = UpdateAdmissionsDischargeDto;
-      const admissionsDischargeExist = await findOneByTerm({
-        repository: this.admissionsDischargeRepository,
-        term: id,
-      });
-      Object.assign(admissionsDischargeExist, res);
 
-      const result = await updateResult(
-        this.admissionsDischargeRepository,
-        id,
-        admissionsDischargeExist,
-      );
-      return result;
+      return await runInTransaction(this.dataSource, async (queryRunner) => {
+        const admissionsDischargeExist = await this.findOne({
+          term: id,
+          relations: true,
+        });
+        Object.assign(admissionsDischargeExist, res);
+
+        const result = await updateResult(
+          this.admissionsDischargeRepository,
+          id,
+          admissionsDischargeExist[0].data[0],
+          queryRunner,
+        );
+        return result;
+      });
     } catch (error) {}
   }
 
