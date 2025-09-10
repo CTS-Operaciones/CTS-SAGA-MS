@@ -41,6 +41,7 @@ export class InventoryHasAssignService {
         idInventory.map(async (i) => {
           const inventoryExist = await this.inventoryService.findOneSimple(i);
           const actaExist = await this.assignmentsService.finOneSimple(idActa);
+
           if (!inventoryExist || !actaExist) {
             throw new ErrorManager({
               message: `Id ${i} o ${idActa} no existen`,

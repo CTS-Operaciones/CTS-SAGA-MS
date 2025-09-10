@@ -9,7 +9,7 @@ export class AssignmentsController {
     private readonly admissionsService: InventoryHasAdmissionService,
   ) {}
 
-  @MessagePattern('createInventoryHasAdmission')
+  @MessagePattern('createInventoryhasAdmissionDischarge')
   create(@Payload() CreateHasAdmissionDto: CreateHasAdmissionDto) {
     return this.admissionsService.create(CreateHasAdmissionDto);
   }

@@ -66,13 +66,6 @@ export class InventoryHasAddService {
       throw ErrorManager.createSignatureError(error);
     }
   }
-  /*************  ✨ Windsurf Command ⭐  *************/
-  /**
-   * Crear inventario relacionado con una acta de alta o baja
-   * @param createDto datos de la acta y los inventarios a relacionar
-   * @returns Promesa que se cumple si se relacionan los inventarios con exito
-   */
-  /*******  e936cb85-59ac-4f45-ab0b-d4918e2b39a7  *******/
   async createRemove(createDto: CreateRemoveDto) {
     try {
       return runInTransaction(this.dataSource, async (queryRunner) => {

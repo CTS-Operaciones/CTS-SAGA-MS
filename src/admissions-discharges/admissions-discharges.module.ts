@@ -4,7 +4,6 @@ import { AdmissionsDischargesController } from './admissions.discharge.controlle
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { admissionsDischarges } from 'cts-entities';
 
-
 @Module({
   imports: [TypeOrmModule.forFeature([admissionsDischarges])],
   controllers: [AdmissionsDischargesController],

@@ -3,7 +3,7 @@ import { CreateAdmissionsDischargeDto } from './dto/create-admissions-discharge.
 import { UpdateAdmissionsDischargeDto } from './dto/update-admissions-discharge.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { admissionsDischarges } from 'cts-entities';
-import { DataSource, FindManyOptions, Repository } from 'typeorm';
+import { DataSource, FindManyOptions, QueryRunner, Repository } from 'typeorm';
 
 import {
   createResult,
@@ -16,8 +16,6 @@ import {
   runInTransaction,
   updateResult,
 } from 'src/common';
-import { options } from 'joi';
-import { find } from 'rxjs';
 
 @Injectable()
 export class AdmissionsDischargesService {
@@ -26,6 +24,7 @@ export class AdmissionsDischargesService {
     private readonly admissionsDischargeRepository: Repository<admissionsDischarges>,
     private readonly dataSource: DataSource,
   ) {}
+
   async create(createAdmissionsDischargeDto: CreateAdmissionsDischargeDto) {
     try {
       return runInTransaction(this.dataSource, async (manager) => {
@@ -88,22 +87,16 @@ export class AdmissionsDischargesService {
   }: FindOneWhitTermAndRelationDto) {
     try {
       const options: FindManyOptions<admissionsDischarges> = {};
-      if (relations) {
+      if (relations)
         options.relations = {
           ...options.relations,
           admissionsHasInventory: {
             inventory: {
               ubications: true,
-              resource: {
-                clasification: true,
-                model: {
-                  brand: true,
-                },
-              },
             },
           },
         };
-      }
+
       if (allRelations) {
         options.relations = {
           ...options.relations,
@@ -127,8 +120,8 @@ export class AdmissionsDischargesService {
       }
       const result = findOneByTerm({
         repository: this.admissionsDischargeRepository,
-        term: term,
-        options: options,
+        term,
+        options,
       });
       return result;
     } catch (error) {
@@ -143,14 +136,14 @@ export class AdmissionsDischargesService {
       return await runInTransaction(this.dataSource, async (queryRunner) => {
         const admissionsDischargeExist = await this.findOne({
           term: id,
-          relations: true,
         });
-        Object.assign(admissionsDischargeExist, res);
+
+        const replace = Object.assign(admissionsDischargeExist, res);
 
         const result = await updateResult(
           this.admissionsDischargeRepository,
           id,
-          admissionsDischargeExist[0].data[0],
+          replace,
           queryRunner,
         );
         return result;
@@ -158,9 +151,17 @@ export class AdmissionsDischargesService {
     } catch (error) {}
   }
 
-  remove(id: number) {
+  async remove(id: number, queryRunner?: QueryRunner) {
     try {
-      return deleteResult(this.admissionsDischargeRepository, id);
+      const search = await this.findOne({ term: id });
+
+      const idInventory = search.id;
+
+      return deleteResult(
+        this.admissionsDischargeRepository,
+        idInventory,
+        queryRunner,
+      );
     } catch (error) {
       throw ErrorManager.createSignatureError(error);
     }

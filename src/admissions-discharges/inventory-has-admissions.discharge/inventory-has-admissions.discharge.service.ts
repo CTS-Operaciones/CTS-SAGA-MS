@@ -1,30 +1,41 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { admissionHasInventory} from 'cts-entities';
-import { FindOneOptions, Repository } from 'typeorm';
+import { DataSource, FindOneOptions, Repository } from 'typeorm';
 
 import {
-
   deleteResult,
   ErrorManager,
   FindOneWhitTermAndRelationDto,
+  msgError,
   paginationResult,
   restoreResult,
+  runInTransaction,
   STATUS_ENTRIES,
 } from 'src/common';
 
-import { CreateHasAdmissionDto} from './dto/create-inventory-has-admissions.discharge.dto';
+import { CreateHasAdmissionDto } from './dto/create-inventory-has-admissions.discharge.dto';
 
-import { AdmissionsDischargesService} from '../admissions-discharges.service';
+import { AdmissionsDischargesService } from '../admissions-discharges.service';
 
 import { InventoryService } from '../../inventory/inventory.service';
+import { Injectable } from '@nestjs/common';
 
+@Injectable()
 export class InventoryHasAdmissionService {
   constructor(
     @InjectRepository(admissionHasInventory)
     private readonly inventoryHasAdmissionRepository: Repository<admissionHasInventory>,
     private readonly admissionService: AdmissionsDischargesService,
     private readonly inventoryService: InventoryService,
+    private readonly dataSource: DataSource,
   ) {}
+  /*************  ✨ Windsurf Command ⭐  *************/
+  /**
+   * Crear un nuevo registro de inventario asociado a una acta de
+   * admision o salida.
+   *
+
+/*******  9bcc50df-42b8-4ad3-bde1-bf1ea01a7985  *******/
   async create(createDto: CreateHasAdmissionDto) {
     try {
       const { idActa, idInventory } = createDto;
@@ -32,7 +43,7 @@ export class InventoryHasAdmissionService {
       if (!Array.isArray(idInventory) || idInventory.length === 0) {
         throw new ErrorManager({
           message: 'El inventario debe ser un array',
-          code: 'BAD_REQUEST',
+          code: 'NOT_FOUND',
         });
       }
 
@@ -40,6 +51,7 @@ export class InventoryHasAdmissionService {
         idInventory.map(async (i) => {
           const inventoryExist = await this.inventoryService.findOneSimple(i);
           const actaExist = await this.admissionService.findOneSimple(idActa);
+
           if (!inventoryExist || !actaExist) {
             throw new ErrorManager({
               message: `Id ${i} o ${idActa} no existen`,
@@ -51,8 +63,8 @@ export class InventoryHasAdmissionService {
 
           if (inventoryActa) {
             throw new ErrorManager({
-              message: `El inventario con ID ${i} ya ha sido dado de baja en otra acta`,
-              code: 'BAD_REQUEST',
+              message: msgError('REGISTER_EXIST'),
+              code: 'NOT_FOUND',
             });
           }
 
@@ -80,7 +92,7 @@ export class InventoryHasAdmissionService {
       return results;
     } catch (error) {
       console.log(error);
-      throw Error;
+      throw ErrorManager.createSignatureError(error);
     }
   }
 
@@ -122,10 +134,13 @@ export class InventoryHasAdmissionService {
         options.withDeleted = true;
       }
 
-      const result = await paginationResult(this.inventoryHasAdmissionRepository, {
-        all: true,
-        options,
-      });
+      const result = await paginationResult(
+        this.inventoryHasAdmissionRepository,
+        {
+          all: true,
+          options,
+        },
+      );
 
       const data = result.data.map((el: admissionHasInventory) => {
         return {
@@ -168,19 +183,49 @@ export class InventoryHasAdmissionService {
       throw ErrorManager.createSignatureError(error);
     }
   }
-  async delete(id: number) {
-    return await deleteResult(this.inventoryHasAdmissionRepository, id);
+  async remove(id: number) {
+    try {
+      return runInTransaction(this.dataSource, async (queryRunner) => {
+        const acta = await this.admissionService.findOne({ term: id });
+
+        const search = await this.inventoryHasAdmissionRepository.find({
+          where: { AdmissionsDischarges: { id: acta.id } },
+          relations: { inventory: true },
+        });
+
+        for (const item of search) {
+          const { id, inventory } = item;
+          const idInventory = inventory.id;
+          console.log(idInventory);
+
+          await deleteResult(
+            this.inventoryHasAdmissionRepository,
+            id,
+            queryRunner,
+          );
+
+          await this.inventoryService.remove(inventory.id, queryRunner);
+        }
+
+        const result = await this.admissionService.remove(id, queryRunner);
+
+        return result;
+      });
+    } catch (error) {
+      throw ErrorManager.createSignatureError(error);
+    }
   }
 
   async findInventoryByActa(idActa: number, idInventory: number) {
     try {
-      const result = await this.inventoryHasAdmissionRepository.findOne({
+      const isExist = await this.inventoryHasAdmissionRepository.findOne({
         where: {
           AdmissionsDischarges: { id: idActa },
           inventory: { id: idInventory },
         },
       });
-      return result;
+
+      return isExist;
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);

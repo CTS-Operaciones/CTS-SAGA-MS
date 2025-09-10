@@ -13,6 +13,7 @@ import { AdmissionsDischargesModule } from './admissions-discharges/admissions-d
 import { InventoryModule } from './inventory/inventory.module';
 import { UbicationsModule } from './ubications/ubications.module';
 import { InventoryHasAddModule } from './add-remove/inventory-has-add/inventory-has-add.module';
+import { InventoryHasAdmissionsModule } from './admissions-discharges/inventory-has-admissions.discharge/inventory-has-admissions.discharge.module';
 import { InventoryHasAssignModule } from './assignments/inventory-has-assign/inventory-has-assign.module';
 
 @Module({
@@ -31,6 +32,7 @@ import { InventoryHasAssignModule } from './assignments/inventory-has-assign/inv
     UbicationsModule,
     InventoryHasAddModule,
     InventoryHasAssignModule,
+    InventoryHasAdmissionsModule,
   ],
 })
 export class AppModule {}

@@ -18,7 +18,6 @@ import {
   FindOneOptions,
   QueryRunner,
   Repository,
-  ReturningStatementNotSupportedError,
 } from 'typeorm';
 import { addRemoval } from 'cts-entities';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -147,6 +146,7 @@ export class AddRemoveService {
           term: id,
           relations: true,
         });
+        Object.assign(addRemoval, rest);
 
         const result = await updateResult(
           this.addRemovalRepository,
