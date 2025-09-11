@@ -29,6 +29,6 @@ export class AssignmentsController {
 
   @MessagePattern('removeInventoryHasAdmission')
   remove(@Payload() { id }: { id: number }) {
-    return this.admissionsService.delete(id);
+    return this.admissionsService.dlete(id);
   }
 }

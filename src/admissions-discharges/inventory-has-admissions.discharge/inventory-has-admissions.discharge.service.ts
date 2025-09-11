@@ -183,7 +183,7 @@ export class InventoryHasAdmissionService {
       throw ErrorManager.createSignatureError(error);
     }
   }
-  async remove(id: number) {
+  async dlete(id: number) {
     try {
       return runInTransaction(this.dataSource, async (queryRunner) => {
         const acta = await this.admissionService.findOne({ term: id });
