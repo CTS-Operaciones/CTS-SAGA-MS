@@ -9,10 +9,6 @@ import { ASSIGNMENT_STATUS } from 'src/common/constants/enums';
 export class CreateAssignmentDto {
   @IsString()
   @IsNotEmpty()
-  name: string;
-
-  @IsString()
-  @IsNotEmpty()
   date: string;
 
   @IsString()
