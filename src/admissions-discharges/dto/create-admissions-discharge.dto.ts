@@ -29,4 +29,13 @@ export class CreateAdmissionsDischargeDto {
 
   @IsEnum(STATUS_ADMISSION)
   type: STATUS_ADMISSION;
+
+  @IsPositive()
+  @IsNotEmpty()
+  @IsNumber()
+  assignmentId: number;
+
+  @IsString()
+  @IsNotEmpty()
+  is_preassignment;
 }

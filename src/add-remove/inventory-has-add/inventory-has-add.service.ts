@@ -212,7 +212,7 @@ export class InventoryHasAddService {
       throw ErrorManager.createSignatureError(error);
     }
   }
-  //Eliminar el acta completa y los items del inventario
+
   async removeActa(id: number) {
     try {
       return runInTransaction(this.dataSource, async (queryRunner) => {

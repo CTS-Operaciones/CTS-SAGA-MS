@@ -21,7 +21,6 @@ export class ResourceDto {
   quantity: number;
 }
 export class CreateHasAddRemoveDto {
-  //Id del acta
   @IsNumber()
   @IsPositive()
   @IsNotEmpty()

@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { CreateAdmissionsDischargeDto } from './dto/create-admissions-discharge.dto';
-import { UpdateAdmissionsDischargeDto } from './dto/update-admissions-discharge.dto';
+import { CreateHabilitationDto } from './dto/create-habilitation.dto';
+import { UpdateHabilitationDto } from './dto/update-habilitation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
-import { admissionsDischarges } from 'cts-entities';
+import { admissionsDischarges, Habilitations } from 'cts-entities';
 import { DataSource, FindManyOptions, QueryRunner, Repository } from 'typeorm';
 
 import {
@@ -18,24 +18,24 @@ import {
 } from 'src/common';
 
 @Injectable()
-export class AdmissionsDischargesService {
+export class HabilitationService {
   constructor(
-    @InjectRepository(admissionsDischarges)
-    private readonly admissionsDischargeRepository: Repository<admissionsDischarges>,
+    @InjectRepository(Habilitations)
+    private readonly habilitationRepository: Repository<Habilitations>,
     private readonly dataSource: DataSource,
   ) {}
 
-  async create(createAdmissionsDischargeDto: CreateAdmissionsDischargeDto) {
+  async create(createHabilitationDto: CreateHabilitationDto) {
     try {
       return runInTransaction(this.dataSource, async (manager) => {
-        const { type, ...rest } = createAdmissionsDischargeDto;
+        const { ...rest } = createHabilitationDto;
         const result = await createResult(
-          this.admissionsDischargeRepository,
+          this.habilitationRepository,
           {
             ...rest,
-            type,
+          
           },
-          admissionsDischarges,
+          Habilitations,
         );
         return result;
       });
@@ -46,7 +46,7 @@ export class AdmissionsDischargesService {
 
   async findAll(pagination: PaginationRelationsDto) {
     try {
-      const options: FindManyOptions<admissionsDischarges> = {};
+      const options: FindManyOptions<Habilitations> = {};
       const { relations } = pagination;
       if (pagination.relations) {
         options.relations = {};
@@ -55,23 +55,26 @@ export class AdmissionsDischargesService {
       if (relations) {
         options.relations = {
           ...options.relations,
-          assignment: {
-            inventoryHasAssigment: {
-              inventory: {
-                ubications: true,
-                resource: {
-                  clasification: true,
-                  model: {
-                    brand: true,
+          admissionsDischarges: {
+            assignment: {
+              inventoryHasAssigment: {
+                inventory: {
+                  ubications: true,
+                  resource: {
+                    clasification: true,
+                    model: {
+                      brand: true,
+                    },
                   },
                 },
               },
             },
-          },
+          }
+          
         };
       }
       const result = await paginationResult(
-        this.admissionsDischargeRepository,
+        this.habilitationRepository,
         {
           ...pagination,
           options,
@@ -88,18 +91,20 @@ export class AdmissionsDischargesService {
     deletes,
   }: FindOneWhitTermAndRelationDto) {
     try {
-      const options: FindManyOptions<admissionsDischarges> = {};
+      const options: FindManyOptions<Habilitations> = {};
       if (relations) {
         options.relations = {
           ...options.relations,
-          assignment: {
-            inventoryHasAssigment: {
-              inventory: {
-                ubications: true,
-                resource: {
-                  clasification: true,
-                  model: {
-                    brand: true,
+          admissionsDischarges: {
+            assignment: {
+              inventoryHasAssigment: {
+                inventory: {
+                  ubications: true,
+                  resource: {
+                    clasification: true,
+                    model: {
+                      brand: true,
+                    },
                   },
                 },
               },
@@ -107,19 +112,20 @@ export class AdmissionsDischargesService {
           },
         };
       }
-        
 
       if (allRelations) {
         options.relations = {
           ...options.relations,
-          assignment: {
-            inventoryHasAssigment: {
-              inventory: {
-                ubications: true,
-                resource: {
-                  clasification: true,
-                  model: {
-                    brand: true,
+          admissionsDischarges: {
+            assignment: {
+              inventoryHasAssigment: {
+                inventory: {
+                  ubications: true,
+                  resource: {
+                    clasification: true,
+                    model: {
+                      brand: true,
+                    },
                   },
                 },
               },
@@ -132,7 +138,7 @@ export class AdmissionsDischargesService {
         options.withDeleted = true;
       }
       const result = findOneByTerm({
-        repository: this.admissionsDischargeRepository,
+        repository: this.habilitationRepository,
         term,
         options,
       });
@@ -142,17 +148,17 @@ export class AdmissionsDischargesService {
     }
   }
 
-  async update(UpdateAdmissionsDischargeDto: UpdateAdmissionsDischargeDto) {
+  async update(updateHabilitationDto: UpdateHabilitationDto) {
     try {
-      const { id, ...res } = UpdateAdmissionsDischargeDto;
+      const { id, ...res } = updateHabilitationDto;
       return await runInTransaction(this.dataSource, async (queryRunner) => {
-        const admissionsDischargeExist = await this.findOne({
+        const habilitationExist = await this.findOne({
           term: id,
         });
-        
-        const replace = Object.assign(admissionsDischargeExist, res);
+
+        const replace = Object.assign(habilitationExist, res);
         const result = await updateResult(
-          this.admissionsDischargeRepository,
+          this.habilitationRepository,
           id,
           replace,
           queryRunner,
@@ -171,7 +177,7 @@ export class AdmissionsDischargesService {
       const idInventory = search.id;
 
       return deleteResult(
-        this.admissionsDischargeRepository,
+        this.habilitationRepository,
         idInventory,
         queryRunner,
       );
@@ -182,7 +188,7 @@ export class AdmissionsDischargesService {
 
   async findOneSimple(id: number) {
     try {
-      const result = await this.admissionsDischargeRepository.findOne({
+      const result = await this.habilitationRepository.findOne({
         where: { id },
       });
       return result;
@@ -190,5 +196,4 @@ export class AdmissionsDischargesService {
       throw ErrorManager.createSignatureError(error);
     }
   }
-  
 }

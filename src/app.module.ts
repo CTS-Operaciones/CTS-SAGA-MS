@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigDataSource } from 'cts-entities';
-
 import { ClasificationsModule } from './clasifications/clasifications.module';
 import { ModelsModule } from './models/models.module';
 import { BrandsModule } from './brands/brands.module';
@@ -13,8 +12,8 @@ import { AdmissionsDischargesModule } from './admissions-discharges/admissions-d
 import { InventoryModule } from './inventory/inventory.module';
 import { UbicationsModule } from './ubications/ubications.module';
 import { InventoryHasAddModule } from './add-remove/inventory-has-add/inventory-has-add.module';
-import { InventoryHasAdmissionsModule } from './admissions-discharges/inventory-has-admissions.discharge/inventory-has-admissions.discharge.module';
 import { InventoryHasAssignModule } from './assignments/inventory-has-assign/inventory-has-assign.module';
+import { HabilitationModule } from './habilitation/habilitation.module';
 
 @Module({
   imports: [
@@ -32,7 +31,7 @@ import { InventoryHasAssignModule } from './assignments/inventory-has-assign/inv
     UbicationsModule,
     InventoryHasAddModule,
     InventoryHasAssignModule,
-    InventoryHasAdmissionsModule,
+    HabilitationModule,
   ],
 })
 export class AppModule {}
