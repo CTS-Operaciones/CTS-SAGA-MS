@@ -15,22 +15,17 @@ export class AssignmentsService {
     private readonly dataSource: DataSource,
   ) {}
 
-  /*TODO: Corregir*/
-
-  create(createAssignmentDto: CreateAssignmentDto) {
+  async create(createAssignmentDto: CreateAssignmentDto) {
     try {
-      return runInTransaction(this.dataSource, async (manager) => {
-        const { type, ...rest } = createAssignmentDto;
-        const result = await createResult(
-          this.assignmentsRepository,
-          {
-            ...rest,
-            type,
-          },
-          Assignments,
-        );
-        return result;
-      });
+      const { ...rest } = createAssignmentDto;
+      const result = await createResult(
+        this.assignmentsRepository,
+        {
+          ...rest,
+        },
+        Assignments,
+      );
+      return result;
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);
@@ -160,9 +155,11 @@ export class AssignmentsService {
   }
   async finOneSimple(id: number) {
     try {
-      const result = await this.assignmentsRepository.findOne({
-        where: { id },
+      const result = await findOneByTerm({
+        repository: this.assignmentsRepository,
+        term: id,
       });
+
       return result;
     } catch (error) {
       console.log(error);

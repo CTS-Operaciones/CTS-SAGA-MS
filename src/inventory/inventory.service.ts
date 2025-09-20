@@ -2,7 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Inventory, Resource, State, Ubications } from 'cts-entities';
-import { FindManyOptions, FindOneOptions, QueryRunner, Repository } from 'typeorm';
+import {
+  FindManyOptions,
+  FindOneOptions,
+  In,
+  QueryRunner,
+  Repository,
+} from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ADD_REMOVE } from '../common/constants/enums';
 import {
@@ -214,11 +220,22 @@ export class InventoryService {
     }
   }
 
-  async findOneSimple(id: number) {
+  async findOneSimple(ids: number[]) {
     try {
-      const result = await this.inventoryRepository.findOne({
-        where: { id },
+      const result = await this.inventoryRepository.find({
+        where: { id: In(ids) },
       });
+
+      if (ids.length !== result.length) {
+        throw new ErrorManager({
+          message: msgError('LENGTH_INCORRECT', {
+            ids: ids.length,
+            find: result.length,
+          }),
+          code: 'NOT_FOUND',
+        });
+      }
+
       return result;
     } catch (error) {
       console.log(error);

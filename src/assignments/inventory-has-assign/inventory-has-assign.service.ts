@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InventoryHasAssigment } from 'cts-entities';
-import { FindOneOptions, Repository } from 'typeorm';
+import { FindOneOptions, In, Repository } from 'typeorm';
 
 import {
   createResult,
@@ -10,7 +10,6 @@ import {
   FindOneWhitTermAndRelationDto,
   paginationResult,
   restoreResult,
-  STATUS_ENTRIES,
 } from 'src/common';
 
 import { CreateHasAssignDto } from '../inventory-has-assign/dto/create-inventory-has-assign.dto';
@@ -18,7 +17,9 @@ import { CreateHasAssignDto } from '../inventory-has-assign/dto/create-inventory
 import { AssignmentsService } from '../assignments.service';
 
 import { InventoryService } from '../../inventory/inventory.service';
+import { UpdateHasAssignDto } from './dto/update-inventory-has-assign.dto';
 
+@Injectable()
 export class InventoryHasAssignService {
   constructor(
     @InjectRepository(InventoryHasAssigment)
@@ -26,9 +27,10 @@ export class InventoryHasAssignService {
     private readonly assignmentsService: AssignmentsService,
     private readonly inventoryService: InventoryService,
   ) {}
+
   async create(createDto: CreateHasAssignDto) {
     try {
-      const { idActa, idInventory } = createDto;
+      const { idActa, idInventory, type } = createDto;
 
       if (!Array.isArray(idInventory) || idInventory.length === 0) {
         throw new ErrorManager({
@@ -37,52 +39,36 @@ export class InventoryHasAssignService {
         });
       }
 
-      const results = await Promise.all(
-        idInventory.map(async (i) => {
-          const inventoryExist = await this.inventoryService.findOneSimple(i);
-          const actaExist = await this.assignmentsService.finOneSimple(idActa);
+      const inventoryActa = await this.findInventoryByActa(idActa, idInventory);
 
-          if (!inventoryExist || !actaExist) {
-            throw new ErrorManager({
-              message: `Id ${i} o ${idActa} no existen`,
-              code: 'NOT_FOUND',
-            });
-          }
+      if (inventoryActa) {
+        throw new ErrorManager({
+          message: 'Uno o más de los inventario ya existe en la acta',
+          code: 'BAD_REQUEST',
+        });
+      }
 
-          const inventoryActa = await this.findInventoryByActa(idActa, i);
+      const inventoryExist =
+        await this.inventoryService.findOneSimple(idInventory);
 
-          if (inventoryActa) {
-            throw new ErrorManager({
-              message: `El inventario con ID ${i} ya ha sido dado de baja en otra acta`,
-              code: 'BAD_REQUEST',
-            });
-          }
+      const actaExist = await this.assignmentsService.finOneSimple(idActa);
 
-          const result = await this.inventoryHasAssignRepository.save({
-            assignmentsReturns: actaExist,
-            inventory: inventoryExist,
-          });
-
-          if (actaExist.type === 'DEVOLUCION') {
-            await this.inventoryService.updateSatusInventory(
-              STATUS_ENTRIES.AVAILABLE,
-              idActa,
-            );
-          } else if (actaExist.type === 'ASIGNACION') {
-            await this.inventoryService.updateSatusInventory(
-              STATUS_ENTRIES.IN_USE,
-              idActa,
-            );
-          }
-
-          return result;
+      return await Promise.all(
+        inventoryExist.map(async (i) => {
+          await createResult(
+            this.inventoryHasAssignRepository,
+            {
+              assignmentsReturns: actaExist,
+              inventory: i,
+              type,
+            },
+            InventoryHasAssigment,
+          );
         }),
       );
-
-      return results;
     } catch (error) {
       console.log(error);
-      throw Error;
+      throw ErrorManager.createSignatureError(error);
     }
   }
 
@@ -174,15 +160,83 @@ export class InventoryHasAssignService {
     return await deleteResult(this.inventoryHasAssignRepository, id);
   }
 
-  async findInventoryByActa(idActa: number, idInventory: number) {
+  async findInventoryByActa(idActa: number, idInventory: number[]) {
     try {
       const result = await this.inventoryHasAssignRepository.findOne({
         where: {
           assignmentsReturns: { id: idActa },
-          inventory: { id: idInventory },
+          inventory: { id: In(idInventory) },
         },
       });
       return result;
+    } catch (error) {
+      console.log(error);
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
+
+  async findOne(id: number) {
+    try {
+      const result = await this.inventoryHasAssignRepository.findOne({
+        where: { id },
+      });
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
+
+  async update(updateHasAssignDto: UpdateHasAssignDto) {
+    try {
+      const { id, idActa, idInventory, type, is_preassignment } =
+        updateHasAssignDto;
+
+      if (is_preassignment === true) {
+        throw new ErrorManager({
+          message: 'No se puede actualizar el inventario',
+          code: 'NOT_MODIFIED',
+        });
+      }
+      if (idInventory?.length === 0 || idInventory === undefined) {
+        throw new ErrorManager({
+          message: 'El inventario debe ser un array',
+          code: 'BAD_REQUEST',
+        });
+      }
+      const search = await this.inventoryHasAssignRepository.find({
+        where: { assignmentsReturns: { id: idActa } },
+        relations: { inventory: true },
+      });
+
+      //actualizar los inventarios, quitar los que no esten en el array
+      await Promise.all(
+        search.map(async (i) => {
+          if (!idInventory?.includes(i.inventory.id)) {
+            await this.inventoryService.remove(i.inventory.id);
+          }
+        }),
+      );
+
+      //agregar los inventarios que no existan en search y esten en idInventory
+      await Promise.all(
+        idInventory.map(async (i) => {
+          const inventoryExist = await this.inventoryService.findOne({
+            term: i,
+          });
+          if (!search.find((el) => el.inventory.id === i)) {
+            await createResult(
+              this.inventoryHasAssignRepository,
+              {
+                assignmentsReturns: { id: idActa },
+                inventory: inventoryExist,
+                type,
+              },
+              InventoryHasAssigment,
+            );
+          }
+        }),
+      );
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);

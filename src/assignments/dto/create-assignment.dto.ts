@@ -1,11 +1,15 @@
+import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsPositive,
   IsString,
 } from 'class-validator';
+import { ToBoolean } from 'cts-entities';
 import { ASSIGNMENT_STATUS } from 'src/common/constants/enums';
+
 export class CreateAssignmentDto {
   @IsString()
   @IsNotEmpty()
@@ -19,12 +23,17 @@ export class CreateAssignmentDto {
   @IsPositive()
   project_id: number;
 
-  /*TODO: VERIFICAR SI AGREGAR EL USER O  LAS FIRMAS*/
   @IsNumber()
   @IsNotEmpty()
   @IsPositive()
   user_id: number;
 
   @IsEnum(ASSIGNMENT_STATUS)
-  type: ASSIGNMENT_STATUS;
+  type: ASSIGNMENT_STATUS = ASSIGNMENT_STATUS.ASIGNACION;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  @Type(() => Boolean)
+  @ToBoolean('is_preassignment')
+  is_preassignment: boolean = false;
 }

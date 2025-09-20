@@ -28,7 +28,8 @@ export class CreateAdmissionsDischargeDto {
   user_id: number;
 
   @IsEnum(STATUS_ADMISSION)
-  type: STATUS_ADMISSION;
+  @IsNotEmpty()
+  type: STATUS_ADMISSION = STATUS_ADMISSION.ADMISSION;
 
   @IsPositive()
   @IsNotEmpty()

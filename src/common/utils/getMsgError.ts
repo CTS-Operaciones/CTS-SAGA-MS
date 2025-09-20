@@ -35,10 +35,14 @@ export const msgError = (
 
     DELETE_NOT_FOUND: `Registro con id ${value} no encontrado para eliminarse`,
 
+    LENGTH_INCORRECT: `La longitud de ${value?.ids} con ${value?.find} es incorrecta`,
+
     // Activar y desactivar
     ACTIVATE: 'No se logro activar el registro',
 
     DEACTIVATE: 'No se logro desactivar el registro',
+
+    NOT_UPDATE: 'No es posible actualizar el registro',
   };
 
   return codeMacher[errorCode];
@@ -59,7 +63,9 @@ export declare enum ErrorCode {
   NO_WITH_TERM = 'NO_WITH_TERM',
   UPDATE_NOT_FOUND = 'UPDATE_NOT_FOUND',
   DELETE_NOT_FOUND = 'DELETE_NOT_FOUND',
+  LENGTH_INCORRECT = 'LENGTH_INCORRECT',
   ACTIVATE = 'ACTIVATE',
   DEACTIVATE = 'DEACTIVATE',
   NOT_FOUND_RESOURCE = 'NOT_FOUND_RESOURCE',
+  NOT_UPDATE = 'NOT_UPDATE',
 }

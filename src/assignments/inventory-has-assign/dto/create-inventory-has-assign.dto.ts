@@ -1,22 +1,32 @@
 
+import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsBoolean,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsPositive,
-  ValidateNested,
 } from 'class-validator';
-import { CreateResourceDto as createResourceDto } from '../../../resources/dto/create-resource.dto';
-import { Type } from 'class-transformer';
-
+import { ASSIGNMENT_STATUS } from 'src/common';
+import { ToBoolean } from 'src/common/decorator';
 
 export class CreateHasAssignDto {
-  //Id del acta
   @IsNumber()
   @IsPositive()
   @IsNotEmpty()
   idActa: number;
-  // Inventory
+
   @IsArray()
   idInventory: number[];
+
+  @IsEnum(ASSIGNMENT_STATUS)
+  @IsNotEmpty()
+  type: ASSIGNMENT_STATUS = ASSIGNMENT_STATUS.ASIGNACION;
+
+  @IsBoolean()
+  @IsNotEmpty()
+  @Type(() => Boolean)
+  @ToBoolean('is_preassignment')
+  is_preassignment: boolean = false;
 }

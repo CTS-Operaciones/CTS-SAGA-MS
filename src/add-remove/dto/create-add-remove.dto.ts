@@ -26,7 +26,8 @@ export class CreateAddRemoveDto {
   observations: string;
 
   @IsEnum(ADD_REMOVE)
-  type: ADD_REMOVE;
+  @IsNotEmpty()
+  type: ADD_REMOVE = ADD_REMOVE.ALTA;
 
   @IsString()
   factura: string;

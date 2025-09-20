@@ -30,5 +30,5 @@ export class CreateResourceDto {
 
   @IsEnum(TYPE_RESOURCE)
   @IsNotEmpty()
-  type: string;
+  type: TYPE_RESOURCE = TYPE_RESOURCE.INVENTARIO;
 }

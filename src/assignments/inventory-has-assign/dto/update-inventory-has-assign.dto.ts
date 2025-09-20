@@ -7,13 +7,9 @@ import {
   IsPositive,
 } from 'class-validator';
 
-export class UpdateHasAssignDto {
+export class UpdateHasAssignDto extends PartialType(CreateHasAssignDto) {
   @IsPositive()
-  @IsNotEmpty()
   @IsNumber()
-  idActa: number;
-
-  @IsNumber({}, { each: true })
-  @ArrayNotEmpty()
-  itemId: number[];
+  @IsNotEmpty()
+  id: number;
 }
