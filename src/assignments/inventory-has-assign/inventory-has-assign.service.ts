@@ -1,15 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InventoryHasAssigment } from 'cts-entities';
-import { FindOneOptions, In, Repository } from 'typeorm';
-
+import { DataSource, FindOneOptions, In, Repository } from 'typeorm';
 import {
+  ASSIGNMENT_STATUS,
   createResult,
   deleteResult,
   ErrorManager,
   FindOneWhitTermAndRelationDto,
   paginationResult,
   restoreResult,
+  runInTransaction,
 } from 'src/common';
 
 import { CreateHasAssignDto } from '../inventory-has-assign/dto/create-inventory-has-assign.dto';
@@ -26,6 +27,7 @@ export class InventoryHasAssignService {
     private readonly inventoryHasAssignRepository: Repository<InventoryHasAssigment>,
     private readonly assignmentsService: AssignmentsService,
     private readonly inventoryService: InventoryService,
+    private readonly dataSource: DataSource,
   ) {}
 
   async create(createDto: CreateHasAssignDto) {
@@ -187,56 +189,78 @@ export class InventoryHasAssignService {
     }
   }
 
-  async update(updateHasAssignDto: UpdateHasAssignDto) {
+  async remove(id: number) {
     try {
-      const { id, idActa, idInventory, type, is_preassignment } =
-        updateHasAssignDto;
+      return runInTransaction(this.dataSource, async (queryRunner) => {
+        const search = await this.inventoryHasAssignRepository.find({
+          where: { id },
+        });
 
-      if (is_preassignment === true) {
+        if (search.length < 0) {
+          throw new ErrorManager({
+            message: 'No se encontró el elemento a eliminar',
+            code: 'NOT_FOUND',
+          });
+        }
+
+        return await this.inventoryHasAssignRepository.delete(id);
+      });
+    } catch (error) {
+      console.log(error);
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
+  async update(updateHasAssignDto: CreateHasAssignDto) {
+    try {
+      const { idActa, idInventory, is_preassignment } = updateHasAssignDto;
+
+      if (is_preassignment === false) {
         throw new ErrorManager({
-          message: 'No se puede actualizar el inventario',
+          message:
+            'No se puede actualizar el inventario, la preasignación fue cerrada',
           code: 'NOT_MODIFIED',
         });
       }
-      if (idInventory?.length === 0 || idInventory === undefined) {
-        throw new ErrorManager({
-          message: 'El inventario debe ser un array',
-          code: 'BAD_REQUEST',
-        });
-      }
+      const actaExist = await this.assignmentsService.findOne({ term: idActa });
+
       const search = await this.inventoryHasAssignRepository.find({
         where: { assignmentsReturns: { id: idActa } },
         relations: { inventory: true },
       });
 
-      //actualizar los inventarios, quitar los que no esten en el array
-      await Promise.all(
-        search.map(async (i) => {
-          if (!idInventory?.includes(i.inventory.id)) {
-            await this.inventoryService.remove(i.inventory.id);
-          }
-        }),
+      let recursosExistentes = await search.map((e) => e.inventory.id);
+
+      let resourcesToDelete = search.filter(
+        (rel) => !idInventory?.includes(rel.inventory.id),
       );
 
-      //agregar los inventarios que no existan en search y esten en idInventory
-      await Promise.all(
-        idInventory.map(async (i) => {
-          const inventoryExist = await this.inventoryService.findOne({
-            term: i,
-          });
-          if (!search.find((el) => el.inventory.id === i)) {
-            await createResult(
-              this.inventoryHasAssignRepository,
-              {
-                assignmentsReturns: { id: idActa },
-                inventory: inventoryExist,
-                type,
-              },
-              InventoryHasAssigment,
-            );
-          }
-        }),
+      if (resourcesToDelete.length > 0) {
+        for (const itemToDelete of resourcesToDelete) {
+          await this.inventoryHasAssignRepository.remove(itemToDelete);
+        }
+      }
+
+      let resourcesToAdd = idInventory?.filter(
+        (newResource) => !recursosExistentes.includes(newResource),
       );
+
+      if (resourcesToAdd.length > 0) {
+        for (const itemToAdd of resourcesToAdd) {
+          const inventoryE = await this.inventoryService.findOne({
+            term: itemToAdd,
+          });
+          const result = await this.inventoryHasAssignRepository.create({
+            inventory: inventoryE,
+            assignmentsReturns: actaExist,
+            type: ASSIGNMENT_STATUS.ASIGNACION,
+          });
+
+          const r = await this.inventoryHasAssignRepository.save(result);
+
+          return r;
+        }
+      }
+      return search;
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);

@@ -16,6 +16,7 @@ import {
   runInTransaction,
   updateResult,
 } from 'src/common';
+import { AdmissionsDischargesService } from 'src/admissions-discharges/admissions-discharges.service';
 
 @Injectable()
 export class HabilitationService {
@@ -23,17 +24,22 @@ export class HabilitationService {
     @InjectRepository(Habilitations)
     private readonly habilitationRepository: Repository<Habilitations>,
     private readonly dataSource: DataSource,
+    private readonly admissionsDischargesService: AdmissionsDischargesService,
   ) {}
 
   async create(createHabilitationDto: CreateHabilitationDto) {
     try {
       return runInTransaction(this.dataSource, async (manager) => {
-        const { ...rest } = createHabilitationDto;
+        const { admissionsDischarge, ...rest } = createHabilitationDto;
+
+        const admissionsExist = await this.admissionsDischargesService.findOne({
+          term: admissionsDischarge,
+        });
         const result = await createResult(
           this.habilitationRepository,
           {
+            admissionsDischarges: admissionsExist,
             ...rest,
-          
           },
           Habilitations,
         );
@@ -69,17 +75,13 @@ export class HabilitationService {
                 },
               },
             },
-          }
-          
+          },
         };
       }
-      const result = await paginationResult(
-        this.habilitationRepository,
-        {
-          ...pagination,
-          options,
-        },
-      );
+      const result = await paginationResult(this.habilitationRepository, {
+        ...pagination,
+        options,
+      });
       return result;
     } catch (error) {}
   }

@@ -74,14 +74,7 @@ export class AssignmentsService {
     allRelations,
   }: FindOneWhitTermAndRelationDto) {
     try {
-      const options: FindOneOptions<Assignments> = {
-        /*  where: { id: +term },
-        relations: {
-          inventoryHasAssigment: {
-            inventory: true,
-          },
-        }, */
-      };
+      const options: FindOneOptions<Assignments> = {};
 
       if (relations) {
         options.relations = {
@@ -121,21 +114,17 @@ export class AssignmentsService {
       throw ErrorManager.createSignatureError(error);
     }
   }
-  //Todo: Corregir
+
   update(updateAssignmentDto: UpdateAssignmentDto) {
     try {
       const { id, ...res } = updateAssignmentDto;
-      return runInTransaction(this.dataSource, async (manager) => {
+      return runInTransaction(this.dataSource, async (queryRunner) => {
         const assignment = await this.findOne({
           term: id,
           relations: true,
         });
-        Object.assign(assignment, res);
-        const result = await updateResult(
-          this.assignmentsRepository,
-          id,
-          assignment[0].data[0],
-        );
+        const replace = Object.assign(assignment, res);
+        const result = await queryRunner.manager.save(Assignments, replace);
 
         return result;
       });

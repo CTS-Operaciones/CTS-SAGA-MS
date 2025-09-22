@@ -12,7 +12,7 @@ import { Timestamp } from 'typeorm';
 export class CreateHabilitationDto {
   @IsDate()
   @IsNotEmpty()
-  fecha: Timestamp;
+  fecha: Date;
   @IsString()
   @IsNotEmpty()
   name: string;

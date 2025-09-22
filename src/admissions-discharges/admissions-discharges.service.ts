@@ -16,23 +16,31 @@ import {
   runInTransaction,
   updateResult,
 } from 'src/common';
+import { AssignmentsService } from 'src/assignments/assignments.service';
 
 @Injectable()
 export class AdmissionsDischargesService {
   constructor(
     @InjectRepository(admissionsDischarges)
     private readonly admissionsDischargeRepository: Repository<admissionsDischarges>,
+    private readonly assigmentsService: AssignmentsService,
     private readonly dataSource: DataSource,
   ) {}
 
   async create(createAdmissionsDischargeDto: CreateAdmissionsDischargeDto) {
     try {
       return runInTransaction(this.dataSource, async (manager) => {
-        const { type, ...rest } = createAdmissionsDischargeDto;
+        const { assignmentId, type, ...rest } = createAdmissionsDischargeDto;
+
+        const admissionsExist = await this.assigmentsService.findOne({
+          term: assignmentId,
+        });
+
         const result = await createResult(
           this.admissionsDischargeRepository,
           {
             ...rest,
+            assignment: admissionsExist,
             type,
           },
           admissionsDischarges,
@@ -107,7 +115,6 @@ export class AdmissionsDischargesService {
           },
         };
       }
-        
 
       if (allRelations) {
         options.relations = {
@@ -149,7 +156,7 @@ export class AdmissionsDischargesService {
         const admissionsDischargeExist = await this.findOne({
           term: id,
         });
-        
+
         const replace = Object.assign(admissionsDischargeExist, res);
         const result = await updateResult(
           this.admissionsDischargeRepository,
@@ -190,5 +197,4 @@ export class AdmissionsDischargesService {
       throw ErrorManager.createSignatureError(error);
     }
   }
-  
 }

@@ -3,7 +3,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { InventoryHasAssignService} from './inventory-has-assign.service';
 import { CreateHasAssignDto}  from './dto/create-inventory-has-assign.dto';
 import { FindOneWhitTermAndRelationDto } from 'src/common';
-
+import { UpdateHasAssignDto } from './dto/update-inventory-has-assign.dto';
 @Controller({ path: 'inventory-has-assign', version: '1' })
 export class AssignmentsController {
   constructor(
@@ -31,5 +31,10 @@ export class AssignmentsController {
   @MessagePattern('removeInventoryHasAssign')
   remove(@Payload() { id }: { id: number }) {
     return this.asssignmentsService.delete(id);
+  }
+
+  @MessagePattern('updateInventoryHasAssigment')
+  update(@Payload() updateDto: CreateHasAssignDto) {
+    return this.asssignmentsService.update(updateDto);
   }
 }

@@ -1,10 +1,13 @@
+import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsPositive,
   IsString,
 } from 'class-validator';
+import { ToBoolean } from 'cts-entities';
 import { STATUS_ADMISSION } from 'src/common/constants/enums';
 export class CreateAdmissionsDischargeDto {
   @IsString()
@@ -36,7 +39,8 @@ export class CreateAdmissionsDischargeDto {
   @IsNumber()
   assignmentId: number;
 
-  @IsString()
-  @IsNotEmpty()
+  @IsBoolean()
+  @Type(() => Boolean)
+  @ToBoolean('is_preassignment')
   is_preassignment;
 }

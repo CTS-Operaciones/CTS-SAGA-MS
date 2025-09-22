@@ -13,8 +13,6 @@ import { ToBoolean } from 'src/common/decorator';
 
 export class CreateHasAssignDto {
   @IsNumber()
-  @IsPositive()
-  @IsNotEmpty()
   idActa: number;
 
   @IsArray()
