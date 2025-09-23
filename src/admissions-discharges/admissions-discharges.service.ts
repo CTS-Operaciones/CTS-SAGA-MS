@@ -30,10 +30,10 @@ export class AdmissionsDischargesService {
   async create(createAdmissionsDischargeDto: CreateAdmissionsDischargeDto) {
     try {
       return runInTransaction(this.dataSource, async (manager) => {
-        const { assignmentId, type, ...rest } = createAdmissionsDischargeDto;
+        const { assignment, type, ...rest } = createAdmissionsDischargeDto;
 
         const admissionsExist = await this.assigmentsService.findOne({
-          term: assignmentId,
+          term: assignment,
         });
 
         const result = await createResult(

@@ -37,10 +37,5 @@ export class CreateAdmissionsDischargeDto {
   @IsPositive()
   @IsNotEmpty()
   @IsNumber()
-  assignmentId: number;
-
-  @IsBoolean()
-  @Type(() => Boolean)
-  @ToBoolean('is_preassignment')
-  is_preassignment;
+  assignment: number;
 }
