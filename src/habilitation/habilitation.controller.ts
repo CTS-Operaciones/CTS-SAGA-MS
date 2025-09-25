@@ -4,24 +4,24 @@ import { HabilitationService } from './habilitation.service';
 import { CreateHabilitationDto } from './dto/create-habilitation.dto';
 import { UpdateHabilitationDto } from './dto/update-habilitation.dto';
 import { PaginationRelationsDto } from '../common';
+import { SearchDto } from '../common/dto/search.dto';
 @Controller()
 export class HabilitationController {
-  constructor(
-    private readonly habilitationService: HabilitationService,
-  ) {}
+  constructor(private readonly habilitationService: HabilitationService) {}
 
   @MessagePattern('createHabilitation')
-  create(
-    @Payload() createHabilitationDto: CreateHabilitationDto,
-  ) {
-    return this.habilitationService.create(
-      createHabilitationDto,
-    );
+  create(@Payload() createHabilitationDto: CreateHabilitationDto) {
+    return this.habilitationService.create(createHabilitationDto);
   }
 
   @MessagePattern('findAllHabilitation')
   findAll(@Payload() pagination: PaginationRelationsDto) {
     return this.habilitationService.findAll(pagination);
+  }
+
+  @MessagePattern('findByTerm')
+  find(@Payload() searchDto: SearchDto) {
+    return this.habilitationService.findByTerm(searchDto);
   }
 
   @MessagePattern('findOneHabilitation')
@@ -37,9 +37,7 @@ export class HabilitationController {
     });
   }
   @MessagePattern('updateHabilitation')
-  update(
-    @Payload() updateHabilitationDto: UpdateHabilitationDto,
-  ) {
+  update(@Payload() updateHabilitationDto: UpdateHabilitationDto) {
     return this.habilitationService.update(updateHabilitationDto);
   }
 }

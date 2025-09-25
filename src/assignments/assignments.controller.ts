@@ -4,6 +4,7 @@ import { AssignmentsService } from './assignments.service';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { UpdateAssignmentDto } from './dto/update-assignment.dto';
 import { FindOneWhitTermAndRelationDto, PaginationDto, PaginationRelationsDto } from 'src/common';
+import { SearchDto } from 'src/common/dto/search.dto';
 
 @Controller()
 export class AssignmentsController {
@@ -32,5 +33,10 @@ export class AssignmentsController {
   @MessagePattern('removeAssignment')
   remove(@Payload() { id }: { id: number }) {
     return this.assignmentsService.remove(id);
+  }
+
+  @MessagePattern('findByTermRemoveAssignment')
+  find(@Payload() searchDto: SearchDto) {
+    return this.assignmentsService.findByTerm(searchDto);
   }
 }

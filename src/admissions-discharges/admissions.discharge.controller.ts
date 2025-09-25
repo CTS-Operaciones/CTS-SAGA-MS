@@ -4,6 +4,7 @@ import { AdmissionsDischargesService } from './admissions-discharges.service';
 import { CreateAdmissionsDischargeDto } from './dto/create-admissions-discharge.dto';
 import { UpdateAdmissionsDischargeDto } from './dto/update-admissions-discharge.dto';
 import { PaginationRelationsDto } from '../common';
+import { SearchDto } from 'src/common/dto/search.dto';
 @Controller()
 export class AdmissionsDischargesController {
   constructor(
@@ -19,6 +20,10 @@ export class AdmissionsDischargesController {
     );
   }
 
+  @MessagePattern('findByTermAdmissionsDischarge')
+  find(@Payload() searchDto: SearchDto) {
+    return this.admissionsDischargesService.findByTerm(searchDto);
+  }
   @MessagePattern('findAllAdmissionsDischarges')
   findAll(@Payload() pagination: PaginationRelationsDto) {
     return this.admissionsDischargesService.findAll(pagination);

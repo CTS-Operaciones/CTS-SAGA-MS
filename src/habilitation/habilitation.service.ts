@@ -17,6 +17,7 @@ import {
   updateResult,
 } from 'src/common';
 import { AdmissionsDischargesService } from 'src/admissions-discharges/admissions-discharges.service';
+import { SearchDto } from '../common/dto/search.dto';
 
 @Injectable()
 export class HabilitationService {
@@ -49,7 +50,36 @@ export class HabilitationService {
       throw ErrorManager.createSignatureError(error);
     }
   }
+  async findByTerm(searchDto: SearchDto) {
+    try {
+      const { project_id, user_id, date_init, date_end } = searchDto;
 
+      const query = this.habilitationRepository
+        .createQueryBuilder('h')
+        .leftJoin('h.admissionsDischarges', 'ad')
+        .select();
+      if (user_id) {
+        query.andWhere('ad.user_id=:user', { user: user_id });
+      }
+      if (project_id) {
+        query.andWhere('ad.project_id=:project', { project: project_id });
+      }
+      if (date_init && date_end) {
+        query
+          .andWhere('h.fecha::date >= :dateInit', { dateInit: date_init })
+          .andWhere('h.fecha::date  <= :dateEnd', { dateEnd: date_end });
+      } else if (date_init) {
+        query.andWhere('h.fecha::date  >= :dateInit::date', {
+          dateInit: date_init,
+        });
+      }
+
+      const result = await query.getMany();
+      return result;
+    } catch (error) {
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
   async findAll(pagination: PaginationRelationsDto) {
     try {
       const options: FindManyOptions<Habilitations> = {};

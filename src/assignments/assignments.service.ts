@@ -6,6 +6,7 @@ import { AssignmentsReturns as Assignments } from 'cts-entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { DataSource } from 'typeorm';
+import { SearchDto } from 'src/common/dto/search.dto';
 
 @Injectable()
 export class AssignmentsService {
@@ -152,6 +153,37 @@ export class AssignmentsService {
       return result;
     } catch (error) {
       console.log(error);
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
+
+  async findByTerm(searchDto: SearchDto) {
+    try {
+      const { project_id, user_id, date_init, date_end } = searchDto;
+
+      const query = this.assignmentsRepository
+        .createQueryBuilder('ad')
+        .select();
+      query.andWhere(`ad."type"::text like 'ASIGNACION'`);
+      if (user_id) {
+        query.andWhere('ad.user_id=:user', { user: user_id });
+      }
+      if (project_id) {
+        query.andWhere('ad.project_id=:project', { project: project_id });
+      }
+      if (date_init && date_end) {
+        query
+          .andWhere('ad."date"::date >= :dateInit', { dateInit: date_init })
+          .andWhere('ad."date"::date  <= :dateEnd', { dateEnd: date_end });
+      } else if (date_init) {
+        query.andWhere('ad.date::date  >= :dateInit::date', {
+          dateInit: date_init,
+        });
+      }
+
+      const result = await query.getMany();
+      return result;
+    } catch (error) {
       throw ErrorManager.createSignatureError(error);
     }
   }

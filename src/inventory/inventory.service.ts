@@ -30,6 +30,7 @@ import { throwError } from 'rxjs';
 
 @Injectable()
 export class InventoryService {
+
   constructor(
     @InjectRepository(Inventory)
     private readonly inventoryRepository: Repository<Inventory>,
