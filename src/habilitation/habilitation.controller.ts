@@ -3,7 +3,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { HabilitationService } from './habilitation.service';
 import { CreateHabilitationDto } from './dto/create-habilitation.dto';
 import { UpdateHabilitationDto } from './dto/update-habilitation.dto';
-import { PaginationRelationsDto } from '../common';
+import { PaginationDto, PaginationRelationsDto } from '../common';
 import { SearchDto } from '../common/dto/search.dto';
 @Controller()
 export class HabilitationController {
@@ -20,8 +20,20 @@ export class HabilitationController {
   }
 
   @MessagePattern('findByTerm')
-  find(@Payload() searchDto: SearchDto) {
-    return this.habilitationService.findByTerm(searchDto);
+  find(
+    @Payload()
+    {
+      pagination,
+      searchDto,
+    }: {
+      searchDto: SearchDto;
+      pagination: PaginationDto;
+    },
+  ) {
+    return this.habilitationService.findByTerm({
+      searchDto,
+      pagination,
+    });
   }
 
   @MessagePattern('findOneHabilitation')

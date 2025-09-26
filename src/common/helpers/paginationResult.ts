@@ -4,9 +4,14 @@ import {
   ObjectLiteral,
   Not,
   IsNull,
+  SelectQueryBuilder,
 } from 'typeorm';
-import { IPaginationDto, IPaginationResult } from '../interfaces';
-
+import {
+  IPaginationDto,
+  IPaginationResponse,
+  IPaginationResult,
+} from '../interfaces';
+import {} from 'typeorm';
 export async function paginationResult<T extends ObjectLiteral>(
   repository: Repository<T>,
   pagination: IPaginationDto<T>,
@@ -15,7 +20,7 @@ export async function paginationResult<T extends ObjectLiteral>(
   const skip = page > 0 ? (page - 1) * limit : 0;
 
   const _options: FindManyOptions<T> = {
-    ...options, 
+    ...options,
     order: { id: 'ASC' } as unknown as FindManyOptions<T>['order'],
   };
 
@@ -34,5 +39,46 @@ export async function paginationResult<T extends ObjectLiteral>(
     totalResult,
     totalPages,
     data,
+  };
+}
+
+export async function paginateQuery<T extends ObjectLiteral>(
+  query: SelectQueryBuilder<T>,
+  page: number = 1,
+  limit: number = 10,
+): Promise<IPaginationResponse<T>> {
+  const skip = (page - 1) * limit;
+
+  const countQuery = query.clone();
+  const total = (await countQuery.getRawMany()).length;
+
+  const data = await query.limit(limit).offset(skip).getRawMany();
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  };
+}
+
+export function paginationArray(
+  query: any[],
+  page: number = 1,
+  limit: number = 10,
+) {
+  const skip = (page - 1) * limit;
+
+  const total = query.length;
+
+  const data = query.slice(skip, skip + limit);
+
+  return {
+    data,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
   };
 }

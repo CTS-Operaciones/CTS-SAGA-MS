@@ -34,3 +34,11 @@ export interface IPaginateDto extends IRelationsEnable {
 export interface IPaginationDto<T> extends Omit<IPaginateDto, 'relations'> {
   options?: FindManyOptions<T>;
 }
+
+export interface IPaginationResponse<T = any> {
+  data: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}

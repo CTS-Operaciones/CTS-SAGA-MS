@@ -11,6 +11,8 @@ import {
   ErrorManager,
   findOneByTerm,
   FindOneWhitTermAndRelationDto,
+  paginationArray,
+  PaginationDto,
   PaginationRelationsDto,
   paginationResult,
   runInTransaction,
@@ -50,10 +52,20 @@ export class HabilitationService {
       throw ErrorManager.createSignatureError(error);
     }
   }
-  async findByTerm(searchDto: SearchDto) {
+  async findByTerm({
+    pagination,
+    searchDto,
+  }: {
+    searchDto: SearchDto;
+    pagination: PaginationDto;
+  }) {
     try {
       const { project_id, user_id, date_init, date_end } = searchDto;
 
+      const { limit: limitP, page: pageP, all } = pagination;
+
+      const limit = limitP ? limitP : 10;
+      const page = pageP ? pageP : 1;
       const query = this.habilitationRepository
         .createQueryBuilder('h')
         .leftJoin('h.admissionsDischarges', 'ad')
@@ -74,7 +86,10 @@ export class HabilitationService {
         });
       }
 
-      const result = await query.getMany();
+      const r = await query.getRawMany();
+
+      const result = paginationArray(r, page, limit);
+
       return result;
     } catch (error) {
       throw ErrorManager.createSignatureError(error);

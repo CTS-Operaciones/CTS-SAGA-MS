@@ -11,6 +11,7 @@ import {
   ErrorManager,
   findOneByTerm,
   FindOneWhitTermAndRelationDto,
+  paginationArray,
   PaginationDto,
   PaginationRelationsDto,
   paginationResult,
@@ -225,7 +226,10 @@ export class AdmissionsDischargesService {
     try {
       const { project_id, user_id, date_init, date_end } = searchDto;
 
-      const { limit = 10, page = 1, all } = pagination;
+      const { limit: limitP, page: pageP, all } = pagination;
+
+      const limit = limitP ? limitP : 10;
+      const page = pageP ? pageP : 1;
 
       const query = this.admissionsDischargeRepository
         .createQueryBuilder('ad')
@@ -245,12 +249,10 @@ export class AdmissionsDischargesService {
           dateInit: date_init,
         });
       }
+      const r = await query.getRawMany();
 
-      if (!all) {
-        query.skip((page - 1) * limit).take(limit);
-      }
+      const result = paginationArray(r, page, limit);
 
-      const result = await query.getMany();
       return result;
     } catch (error) {
       throw ErrorManager.createSignatureError(error);
