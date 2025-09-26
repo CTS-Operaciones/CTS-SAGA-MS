@@ -11,6 +11,7 @@ import {
   ErrorManager,
   findOneByTerm,
   FindOneWhitTermAndRelationDto,
+  PaginationDto,
   PaginationRelationsDto,
   paginationResult,
   runInTransaction,
@@ -150,6 +151,21 @@ export class AdmissionsDischargesService {
     }
   }
 
+  async findOneAdmissionsByAssigment(id: number) {
+    try {
+      const query = this.admissionsDischargeRepository
+        .createQueryBuilder('ad')
+        .leftJoin('ad.assignment', 'a')
+        .select()
+        .andWhere('a.id=:id', { id: id });
+
+      const result = await query.getMany();
+      return result;
+    } catch (error) {
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
+
   async update(UpdateAdmissionsDischargeDto: UpdateAdmissionsDischargeDto) {
     try {
       const { id, ...res } = UpdateAdmissionsDischargeDto;
@@ -199,9 +215,17 @@ export class AdmissionsDischargesService {
     }
   }
 
-  async findByTerm(searchDto: SearchDto) {
+  async findByTerm({
+    pagination,
+    searchDto,
+  }: {
+    searchDto: SearchDto;
+    pagination: PaginationDto;
+  }) {
     try {
       const { project_id, user_id, date_init, date_end } = searchDto;
+
+      const { limit = 10, page = 1, all } = pagination;
 
       const query = this.admissionsDischargeRepository
         .createQueryBuilder('ad')
@@ -220,6 +244,10 @@ export class AdmissionsDischargesService {
         query.andWhere('ad.date::date  >= :dateInit::date', {
           dateInit: date_init,
         });
+      }
+
+      if (!all) {
+        query.skip((page - 1) * limit).take(limit);
       }
 
       const result = await query.getMany();

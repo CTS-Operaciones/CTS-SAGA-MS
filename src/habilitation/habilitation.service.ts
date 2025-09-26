@@ -228,4 +228,19 @@ export class HabilitationService {
       throw ErrorManager.createSignatureError(error);
     }
   }
+
+  async findOneHabilitationByAssigment(id: number) {
+    try {
+      const query = this.habilitationRepository
+        .createQueryBuilder('h')
+        .leftJoin('h.admissionsDischarges', 'ad')
+        .leftJoin('ad.assignment', 'a')
+        .andWhere('a.id=:id', { id: id })
+        .select();
+      const result = await query.getMany();
+      return result;
+    } catch (error) {
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
 }

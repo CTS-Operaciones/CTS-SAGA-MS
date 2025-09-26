@@ -40,4 +40,9 @@ export class HabilitationController {
   update(@Payload() updateHabilitationDto: UpdateHabilitationDto) {
     return this.habilitationService.update(updateHabilitationDto);
   }
+
+  @MessagePattern('findOneHabilitationByAssigment')
+  findAdmissionsByAssigment(@Payload() { id }: { id: number }) {
+    return this.habilitationService.findOneHabilitationByAssigment(id);
+  }
 }

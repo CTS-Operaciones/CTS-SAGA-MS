@@ -3,7 +3,7 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { AdmissionsDischargesService } from './admissions-discharges.service';
 import { CreateAdmissionsDischargeDto } from './dto/create-admissions-discharge.dto';
 import { UpdateAdmissionsDischargeDto } from './dto/update-admissions-discharge.dto';
-import { PaginationRelationsDto } from '../common';
+import { PaginationDto, PaginationRelationsDto } from '../common';
 import { SearchDto } from 'src/common/dto/search.dto';
 @Controller()
 export class AdmissionsDischargesController {
@@ -21,8 +21,20 @@ export class AdmissionsDischargesController {
   }
 
   @MessagePattern('findByTermAdmissionsDischarge')
-  find(@Payload() searchDto: SearchDto) {
-    return this.admissionsDischargesService.findByTerm(searchDto);
+  find(
+    @Payload()
+    {
+      pagination,
+      searchDto,
+    }: {
+      searchDto: SearchDto;
+      pagination: PaginationDto;
+    },
+  ) {
+    return this.admissionsDischargesService.findByTerm({
+      searchDto,
+      pagination,
+    });
   }
   @MessagePattern('findAllAdmissionsDischarges')
   findAll(@Payload() pagination: PaginationRelationsDto) {
@@ -40,6 +52,11 @@ export class AdmissionsDischargesController {
       deletes,
       allRelations,
     });
+  }
+
+  @MessagePattern('findOneAdmissionsByAssigment')
+  findAdmissionsByAssigment(@Payload() { id }: { id: number }) {
+    return this.admissionsDischargesService.findOneAdmissionsByAssigment(id);
   }
   @MessagePattern('updateAdmissionsDischarge')
   update(

@@ -12,6 +12,14 @@ export class ErrorManager extends RpcException {
     super({ code, message });
   }
 
+  /*************  ✨ Windsurf Command ⭐  *************/
+  /**
+   * Función para crear errores de firma en Postgres
+   * Convierte errores de firma en errores de RpcException
+   * @param error Error de firma en Postgres
+   * @throws RpcException
+   */
+  /*******  d79dbdee-3ab0-4fe7-9dae-5480d7bb7ee3  *******/
   public static createSignatureError(error: any) {
     //Error para llaves duplicadas en Postgres
     if (error.detail || error.code === '23505') {
