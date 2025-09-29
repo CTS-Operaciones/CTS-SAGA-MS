@@ -1,7 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAssignmentDto } from './dto/create-assignment.dto';
 import { UpdateAssignmentDto } from './dto/update-assignment.dto';
-import { createResult, deleteResult, ErrorManager, findOneByTerm, FindOneWhitTermAndRelationDto, PaginationRelationsDto, paginationResult, runInTransaction, updateResult } from 'src/common';
+import {
+  createResult,
+  deleteResult,
+  ErrorManager,
+  findOneByTerm,
+  FindOneWhitTermAndRelationDto,
+  paginationArray,
+  PaginationDto,
+  PaginationRelationsDto,
+  paginationResult,
+  runInTransaction,
+  updateResult,
+} from 'src/common';
 import { AssignmentsReturns as Assignments } from 'cts-entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
@@ -157,9 +169,19 @@ export class AssignmentsService {
     }
   }
 
-  async findByTerm(searchDto: SearchDto) {
+  async findByTerm({
+    pagination,
+    searchDto,
+  }: {
+    searchDto: SearchDto;
+    pagination: PaginationDto;
+  }) {
     try {
       const { project_id, user_id, date_init, date_end } = searchDto;
+      const { limit: limitP, page: pageP, all } = pagination;
+
+      const limit = limitP ? limitP : 10;
+      const page = pageP ? pageP : 1;
 
       const query = this.assignmentsRepository
         .createQueryBuilder('ad')
@@ -181,7 +203,8 @@ export class AssignmentsService {
         });
       }
 
-      const result = await query.getMany();
+      const r = await query.getRawMany();
+      const result = paginationArray(r, page, limit);
       return result;
     } catch (error) {
       throw ErrorManager.createSignatureError(error);

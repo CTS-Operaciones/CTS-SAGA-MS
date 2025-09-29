@@ -36,7 +36,19 @@ export class AssignmentsController {
   }
 
   @MessagePattern('findByTermRemoveAssignment')
-  find(@Payload() searchDto: SearchDto) {
-    return this.assignmentsService.findByTerm(searchDto);
+  find(
+    @Payload()
+    {
+      pagination,
+      searchDto,
+    }: {
+      searchDto: SearchDto;
+      pagination: PaginationDto;
+    },
+  ) {
+    return this.assignmentsService.findByTerm({
+      searchDto,
+      pagination,
+    });
   }
 }
