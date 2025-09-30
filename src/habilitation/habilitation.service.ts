@@ -81,7 +81,7 @@ export class HabilitationService {
           .andWhere('h.fecha::date >= :dateInit', { dateInit: date_init })
           .andWhere('h.fecha::date  <= :dateEnd', { dateEnd: date_end });
       } else if (date_init) {
-        query.andWhere('h.fecha::date  >= :dateInit::date', {
+        query.anzdWhere('h.fecha::date  >= :dateInit::date', {
           dateInit: date_init,
         });
       }

@@ -1,6 +1,7 @@
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsDate,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -11,9 +12,9 @@ import { ToBoolean } from 'cts-entities';
 import { ASSIGNMENT_STATUS } from 'src/common/constants/enums';
 
 export class CreateAssignmentDto {
-  @IsString()
+  @IsDate()
   @IsNotEmpty()
-  date: string;
+  date: Date;
 
   @IsString()
   comments: string;

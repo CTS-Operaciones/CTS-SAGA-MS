@@ -1,13 +1,13 @@
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
+  IsDate,
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsPositive,
   IsString,
 } from 'class-validator';
-import { ToBoolean } from 'cts-entities';
 import { STATUS_ADMISSION } from 'src/common/constants/enums';
 export class CreateAdmissionsDischargeDto {
   @IsString()
@@ -17,8 +17,8 @@ export class CreateAdmissionsDischargeDto {
   @IsString()
   observations: string;
 
-  @IsString()
-  date: string;
+  @IsDate()
+  date: Date;
 
   @IsPositive()
   @IsNotEmpty()
