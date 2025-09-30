@@ -66,6 +66,7 @@ export class HabilitationService {
 
       const limit = limitP ? limitP : 10;
       const page = pageP ? pageP : 1;
+
       const query = this.habilitationRepository
         .createQueryBuilder('h')
         .leftJoin('h.admissionsDischarges', 'ad')
@@ -81,7 +82,7 @@ export class HabilitationService {
           .andWhere('h.fecha::date >= :dateInit', { dateInit: date_init })
           .andWhere('h.fecha::date  <= :dateEnd', { dateEnd: date_end });
       } else if (date_init) {
-        query.anzdWhere('h.fecha::date  >= :dateInit::date', {
+        query.andWhere('h.fecha::date  >= :dateInit::date', {
           dateInit: date_init,
         });
       }

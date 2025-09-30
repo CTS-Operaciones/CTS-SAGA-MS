@@ -11,6 +11,9 @@ export class CreateInventoryDto {
   user_id?: number;
 
   @IsNumber()
+  sede_id?: number;
+
+  @IsNumber()
   state?: number;
 
   @IsNumber()

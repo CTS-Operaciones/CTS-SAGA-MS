@@ -14,11 +14,8 @@ import {
 } from 'src/common';
 
 import { CreateHasAssignDto } from '../inventory-has-assign/dto/create-inventory-has-assign.dto';
-
 import { AssignmentsService } from '../assignments.service';
-
 import { InventoryService } from '../../inventory/inventory.service';
-import { UpdateHasAssignDto } from './dto/update-inventory-has-assign.dto';
 
 @Injectable()
 export class InventoryHasAssignService {
@@ -66,6 +63,12 @@ export class InventoryHasAssignService {
             },
             InventoryHasAssigment,
           );
+
+          //actualizar la ubicación del inventario
+          await this.inventoryService.update({
+            id: i.id,
+            sede_id: actaExist.project_id,
+          });
         }),
       );
     } catch (error) {
@@ -169,6 +172,7 @@ export class InventoryHasAssignService {
           assignmentsReturns: { id: idActa },
           inventory: { id: In(idInventory) },
         },
+        relations: { assignmentsReturns: true },
       });
       return result;
     } catch (error) {
@@ -256,7 +260,10 @@ export class InventoryHasAssignService {
           });
 
           const r = await this.inventoryHasAssignRepository.save(result);
-
+          await this.inventoryService.update({
+            id: inventoryE.id,
+            sede_id: actaExist.project_id,
+          });
           return r;
         }
       }

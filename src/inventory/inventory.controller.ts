@@ -29,6 +29,21 @@ export class InventoryController {
     return this.inventoryService.update(updateInventoryDto);
   }
 
+  @MessagePattern('findBySedeInventory')
+  findBySede(
+    @Payload()
+    { pagination, id }: { pagination: PaginationDto; id: number },
+  ) {
+    return this.inventoryService.getInventoryBySede({ pagination, id });
+  }
+
+  @MessagePattern('findByProjectInventory')
+  findByProject(
+    @Payload()
+    { pagination, id }: { pagination: PaginationDto; id: number },
+  ) {
+    return this.inventoryService.getInventoryByProject({ pagination, id });
+  }
   @MessagePattern('removeInventory')
   remove(@Payload() { id }: { id: number }) {
     return this.inventoryService.remove(id);

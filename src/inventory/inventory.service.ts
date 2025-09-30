@@ -18,6 +18,8 @@ import {
   findOneByTerm,
   FindOneWhitTermAndRelationDto,
   msgError,
+  paginationArray,
+  PaginationDto,
   PaginationFilterAssigmentsDto,
   paginationResult,
   updateResult,
@@ -30,7 +32,6 @@ import { throwError } from 'rxjs';
 
 @Injectable()
 export class InventoryService {
-
   constructor(
     @InjectRepository(Inventory)
     private readonly inventoryRepository: Repository<Inventory>,
@@ -221,6 +222,14 @@ export class InventoryService {
     }
   }
 
+  /*************  ✨ Windsurf Command ⭐  *************/
+  /**
+   * Busca uno o varios inventarios por su id.
+   * @param {number[]} ids - Arreglo de ids de inventarios.
+
+   * @returns {Promise<Inventory[]>} - Arreglo de inventarios encontrados.
+   * @throws {ErrorManager} - Si no se encuentra alguno de los inventarios.
+   */
   async findOneSimple(ids: number[]) {
     try {
       const result = await this.inventoryRepository.find({
@@ -263,6 +272,63 @@ export class InventoryService {
     }
   }
 
+  async getInventoryBySede({
+    pagination,
+    id,
+  }: {
+    id: number;
+    pagination: PaginationDto;
+  }) {
+    try {
+      const { limit: limitP, page: pageP, all } = pagination;
+      const limit = limitP ? limitP : 10;
+      const page = pageP ? pageP : 1;
+      const query = `
+      SELECT *
+      FROM inventory i
+      INNER JOIN headquarters h ON i.sede_id = h.id
+      WHERE h.id = $1
+    `;
+
+      const r = await this.inventoryRepository.query(query, [id]);
+
+      const result = paginationArray(r, page, limit);
+
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
+
+  async getInventoryByProject({
+    pagination,
+    id,
+  }: {
+    id: number;
+    pagination: PaginationDto;
+  }) {
+    try {
+      const { limit: limitP, page: pageP, all } = pagination;
+      const limit = limitP ? limitP : 10;
+      const page = pageP ? pageP : 1;
+      const query = `
+      SELECT *
+      FROM inventory i
+      INNER JOIN headquarters h ON i.sede_id = h.id
+      INNER JOIN projects p ON h.project_id = p.id
+      WHERE p.id = $1
+    `;
+
+      const r = await this.inventoryRepository.query(query, [id]);
+
+      const result = paginationArray(r, page, limit);
+
+      return result;
+    } catch (error) {
+      throw ErrorManager.createSignatureError(error);
+    }
+  }
   //Aumentar stock
 
   async aumentarStock(id: number, cant: number) {
@@ -304,4 +370,3 @@ export class InventoryService {
     return 'ok';
   }
 }
-
