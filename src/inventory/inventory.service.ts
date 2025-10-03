@@ -3,7 +3,7 @@ import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { Inventory, Resource, State, Ubications } from 'cts-entities';
 import {
-  FindManyOptions,
+  DataSource,
   FindOneOptions,
   In,
   QueryRunner,
@@ -22,6 +22,7 @@ import {
   PaginationDto,
   PaginationFilterAssigmentsDto,
   paginationResult,
+  runInTransaction,
   updateResult,
 } from 'src/common';
 import { STATUS_ENTRIES } from 'src/common/constants/';
@@ -29,106 +30,159 @@ import { StateService } from 'src/state/state.service';
 import { UbicationsService } from 'src/ubications/ubications.service';
 import { ResourcesService } from 'src/resources/resources.service';
 import { throwError } from 'rxjs';
+import { filter } from 'src/common/interfaces';
+import { filterDto } from 'src/common/dto/searchFilter.dto';
 
 @Injectable()
 export class InventoryService {
   constructor(
     @InjectRepository(Inventory)
+    @InjectRepository(In)
     private readonly inventoryRepository: Repository<Inventory>,
     private readonly stateServices: StateService,
     private readonly ubicationsService: UbicationsService,
     private readonly resourcesService: ResourcesService,
+    private readonly dataSource: DataSource,
   ) {}
-  async create(createInventoryDto: CreateInventoryDto) {
+  async create(
+    createInventoryDto: CreateInventoryDto,
+    queryRunner?: QueryRunner,
+  ) {
     try {
-      let resourceExist: any = null;
-      let ubicationExist: any = null;
-      let stateExist: any = null;
+      return runInTransaction(this.dataSource, async (queryRunner) => {
+        let resourceExist: any = null;
+        let ubicationExist: any = null;
+        let stateExist: any = null;
 
-      if (
-        createInventoryDto.status ||
-        createInventoryDto.resource ||
-        createInventoryDto.ubications
-      ) {
-        1;
-        if (createInventoryDto.state) {
-          stateExist = await this.stateServices.findOne(
-            createInventoryDto.state,
+        if (
+          createInventoryDto.status ||
+          createInventoryDto.resource ||
+          createInventoryDto.ubications
+        ) {
+          1;
+          if (createInventoryDto.state) {
+            stateExist = await this.stateServices.findOne(
+              createInventoryDto.state,
+            );
+          }
+
+          if (createInventoryDto.ubications) {
+            ubicationExist = await this.ubicationsService.findOne(
+              createInventoryDto.ubications,
+            );
+          }
+        }
+        if (!createInventoryDto.resource) {
+          throw throwError(
+            () =>
+              new Error(
+                'El recurso es obligatorio para la creacion del inventario',
+              ),
           );
         }
-
-        if (createInventoryDto.ubications) {
-          ubicationExist = await this.ubicationsService.findOne(
-            createInventoryDto.ubications,
-          );
+        if (createInventoryDto.resource) {
+          const resourceData = await this.resourcesService.findOne({
+            term: createInventoryDto.resource,
+            relations: true,
+          });
+          resourceExist = resourceData ?? null;
         }
-      }
-      if (!createInventoryDto.resource) {
-        throw throwError(
-          () =>
-            new Error(
-              'El recurso es obligatorio para la creacion del inventario',
-            ),
+
+        if (!resourceExist || resourceExist === null) {
+          throw new ErrorManager({
+            message: msgError('NOT_FOUND_RESOURCE'),
+            code: 'NOT_FOUND',
+          });
+        }
+
+        const inventoryToCreate = {
+          ...createInventoryDto,
+          state: stateExist ?? undefined,
+          ubications: ubicationExist ?? undefined,
+          resource: resourceExist,
+        };
+
+        const result = await createResult(
+          this.inventoryRepository,
+          inventoryToCreate,
+          Inventory,
+          queryRunner,
         );
-      }
-      if (createInventoryDto.resource) {
-        const resourceData = await this.resourcesService.findOne({
-          term: createInventoryDto.resource,
-          relations: true,
-        });
-        resourceExist = resourceData ?? null;
-      }
 
-      if (!resourceExist || resourceExist === null) {
-        throw new ErrorManager({
-          message: msgError('NOT_FOUND_RESOURCE'),
-          code: 'NOT_FOUND',
-        });
-      }
-
-      const inventoryToCreate = {
-        ...createInventoryDto,
-        state: stateExist ?? undefined,
-        ubications: ubicationExist ?? undefined,
-        resource: resourceExist,
-      };
-
-      const result = await createResult(
-        this.inventoryRepository,
-        inventoryToCreate,
-        Inventory,
-      );
-
-      return result;
+        return result;
+      });
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);
     }
   }
 
-  async findAll(
-    pagination: PaginationFilterAssigmentsDto<Inventory>,
-    type = ADD_REMOVE,
-  ) {
+  async findAll({
+    pagination,
+    filter,
+  }: {
+    pagination: PaginationFilterAssigmentsDto<Inventory>;
+    filter: filterDto;
+  }) {
     try {
-      const option: FindManyOptions<Inventory> = {};
-      if (pagination.relations)
-        if (pagination.status) {
-          option.where = { status: pagination.status };
-        }
-      option.relations = {
-        state: true,
-        resource: {
-          clasification: true,
-          model: true,
-        },
-      };
-      const result = await paginationResult(this.inventoryRepository, {
-        ...pagination,
-        options: option,
-      });
+      const {
+        model,
+        brand,
+        ubication,
+        name,
+        clasification,
+        resource,
+        user_id,
+        status,
+      } = filter;
+      const query = this.inventoryRepository
+        .createQueryBuilder('i')
+        .leftJoin('i.ubications', 'u')
+        .leftJoin('i.resource', 'r')
+        .leftJoin('r.clasification', 'clasification')
+        .leftJoin('r.model', 'model')
+        .leftJoin('model.brand', 'brand');
+
+      if (model) {
+        query.andWhere('model.id=:model', { model: model });
+      }
+
+      if (brand) {
+        query.andWhere('brand.id=:brand', { brand: brand });
+      }
+
+      if (ubication) {
+        query.andWhere('ubication.id=:ubication', { ubication: ubication });
+      }
+
+      if (clasification) {
+        query.andWhere('clasification.id=:clasification', {
+          clasification: clasification,
+        });
+      }
+
+      if (resource) {
+        query.andWhere('r.id=:resource', { resource: resource });
+      }
+      if (name) {
+        query.andWhere('i.name like :name', { name: `%${name}%` });
+      }
+      if (user_id) {
+        query.andWhere('i.user_id=:user_id', { user_id: user_id });
+      }
+      if (status) {
+        query.andWhere('i.status=:status', { status: status });
+      }
+      const { limit: limitP, page: pageP, all } = pagination;
+      const limit = limitP ? limitP : 10;
+      const page = pageP ? pageP : 1;
+
+      const r = await query.getRawMany();
+
+      const result = paginationArray(r, page, limit);
       return result;
     } catch (error) {
+      console.log(error);
       throw ErrorManager.createSignatureError(error);
     }
   }
@@ -222,14 +276,6 @@ export class InventoryService {
     }
   }
 
-  /*************  ✨ Windsurf Command ⭐  *************/
-  /**
-   * Busca uno o varios inventarios por su id.
-   * @param {number[]} ids - Arreglo de ids de inventarios.
-
-   * @returns {Promise<Inventory[]>} - Arreglo de inventarios encontrados.
-   * @throws {ErrorManager} - Si no se encuentra alguno de los inventarios.
-   */
   async findOneSimple(ids: number[]) {
     try {
       const result = await this.inventoryRepository.find({

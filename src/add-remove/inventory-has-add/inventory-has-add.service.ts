@@ -19,8 +19,7 @@ import {
 
 import { AddRemoveService } from '../add-remove.service';
 import { InventoryService } from 'src/inventory/inventory.service';
-
-
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class InventoryHasAddService {
@@ -34,36 +33,29 @@ export class InventoryHasAddService {
   async create(createDto: CreateHasAddRemoveDto) {
     try {
       return runInTransaction(this.dataSource, async (queryRunner) => {
-        const { idActa, resource } = createDto;
+        const { idActa, inventory } = createDto;
+        const { resource } = inventory;
 
-        for (const r of resource) {
-          const { idResource, quantity } = r;
+        const inventoryData = await this.inventoryService.create(
+          inventory,
+          queryRunner,
+        );
 
-          for (let i = 0; i < quantity; i++) {
-            const registro = this.inventoryService.create({
-              status: STATUS_ENTRIES.AVAILABLE,
-              resource: idResource,
-            });
-            const { id } = await registro;
-            await this.inventoryHasAddRemovalRepository.save({
-              addRemoval: { id: idActa },
-              inventory: { id: id },
-            });
-          }
+        const result = await this.inventoryHasAddRemovalRepository.save({
+          addRemoval: { id: idActa },
+          inventory: { id: inventoryData.id },
+        });
 
-          await this.inventoryService.aumentarStock(idResource, quantity);
-          const resourceData = await this.addRemoveService.findOne({
-            term: idActa,
-          });
+        await this.inventoryService.aumentarStock(resource, 1);
+        const resourceData = await this.addRemoveService.findOne({
+          term: idActa,
+        });
 
-          return {
-            message: 'Inventario creado con exito',
-          };
-        }
+        return createDto;
       });
     } catch (error) {
       console.log(error);
-      throw ErrorManager.createSignatureError(error);
+      throw new RpcException(error.message || 'Error interno');
     }
   }
   async createRemove(createDto: CreateRemoveDto) {

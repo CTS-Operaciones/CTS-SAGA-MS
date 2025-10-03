@@ -4,6 +4,7 @@ import { InventoryService } from './inventory.service';
 import { CreateInventoryDto } from './dto/create-inventory.dto';
 import { UpdateInventoryDto } from './dto/update-inventory.dto';
 import { FindOneWhitTermAndRelationDto, PaginationDto, PaginationRelationsDto } from 'src/common';
+import { filter } from 'src/common/interfaces';
 
 @Controller()
 export class InventoryController {
@@ -15,8 +16,11 @@ export class InventoryController {
   }
 
   @MessagePattern('findAllInventory')
-  findAll(@Payload() pagination: PaginationRelationsDto) {
-    return this.inventoryService.findAll(pagination);
+  findAll(
+    @Payload()
+    { pagination, filter }: { pagination: PaginationDto; filter: filter },
+  ) {
+    return this.inventoryService.findAll({ pagination, filter });
   }
 
   @MessagePattern('findOneInventory')

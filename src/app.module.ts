@@ -6,7 +6,7 @@ import { ModelsModule } from './models/models.module';
 import { BrandsModule } from './brands/brands.module';
 import { ResourcesModule } from './resources/resources.module';
 import { EnablingModule } from './enabling/enabling.module';
-import { MantenanceModule } from './mantenance/mantenance.module';
+import { MaintenancesModule } from './mantenances/mantenance.module';
 import { AssignmentsModule } from './assignments/assignments.module';
 import { AdmissionsDischargesModule } from './admissions-discharges/admissions-discharges.module';
 import { InventoryModule } from './inventory/inventory.module';
@@ -23,11 +23,10 @@ import { HabilitationModule } from './habilitation/habilitation.module';
     ResourcesModule,
     ModelsModule,
     EnablingModule,
-    MantenanceModule,
+    MaintenancesModule,
     AssignmentsModule,
     InventoryModule,
     AdmissionsDischargesModule,
-    MantenanceModule,
     UbicationsModule,
     InventoryHasAddModule,
     InventoryHasAssignModule,

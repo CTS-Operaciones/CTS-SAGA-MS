@@ -2,12 +2,15 @@ import { Module } from '@nestjs/common';
 import { MantenanceService } from './mantenance.service';
 import { MantenanceController } from './mantenance.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { Mantenance } from './entities/mantenance.entity';
+import { Maintenances } from 'cts-entities';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Mantenance])],
+  imports: [TypeOrmModule.forFeature([Maintenances])],
   controllers: [MantenanceController],
   providers: [MantenanceService],
   exports: [MantenanceService],
 })
-export class MantenanceModule {}
+export class MaintenancesModule {}
+
+
+

@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
-import { MessagePattern, Payload } from '@nestjs/microservices';
-import { InventoryHasAddService} from './inventory-has-add.service';
-import { CreateHasAddRemoveDto}  from './dto/create-inventory-has-add-remove.dto';
+import { MessagePattern, Payload, RpcException } from '@nestjs/microservices';
+import { InventoryHasAddService } from './inventory-has-add.service';
+import { CreateHasAddRemoveDto } from './dto/create-inventory-has-add-remove.dto';
 import { FindOneWhitTermAndRelationDto } from 'src/common';
 
 @Controller()
@@ -10,7 +10,13 @@ export class InventoryHasAddController {
 
   @MessagePattern('createInventoryHasAdd')
   create(@Payload() createAddRemoveDto: CreateHasAddRemoveDto) {
-    return this.addRemoveService.create(createAddRemoveDto);
+    try {
+      console.log(createAddRemoveDto);
+      return this.addRemoveService.create(createAddRemoveDto);
+    } catch (error) {
+      console.error('❌ Error en el controlador:', error);
+      throw new RpcException(error.message || 'Error desconocido');
+    }
   }
   @MessagePattern('getResourcesByActa')
   get(@Payload() { id }: { id: number }) {

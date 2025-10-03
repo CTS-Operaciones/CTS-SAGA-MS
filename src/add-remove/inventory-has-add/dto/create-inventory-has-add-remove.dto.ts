@@ -8,6 +8,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { CreateInventoryDto } from 'src/inventory/dto/create-inventory.dto';
 
 export class ResourceDto {
   @IsNumber()
@@ -26,10 +27,9 @@ export class CreateHasAddRemoveDto {
   @IsNotEmpty()
   idActa: number;
 
-  @IsArray()
   @ValidateNested()
-  @Type(() => ResourceDto)
-  resource: ResourceDto[];
+  @Type(() => CreateInventoryDto)
+  inventory: CreateInventoryDto;
 }
 
 export class CreateRemoveDto {
