@@ -3,19 +3,19 @@ import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateHasMaintenanceDto}  from './dto/create-inventory-has-maintenance.dto';
 import { FindOneWhitTermAndRelationDto } from 'src/common';
 import { InventoryHasMaintenanceServices } from './inventory-has-maintenance.service'
-import { } from './inventory-has-maintenance.service'
-@Controller({ path: 'inventory-has-assign', version: '1' })
-export class InventoryHasMaintenanceController {z
+@Controller({ path: 'inventory-has-Maintenance', version: '1' })
+export class InventoryHasMaintenanceController {
+  z;
   constructor(
     private readonly maintenancesService: InventoryHasMaintenanceServices,
   ) {}
 
-  @MessagePattern('createInventoryHasAssign')
+  @MessagePattern('createInventoryHasMaintenance')
   create(@Payload() CreateHasMaintenanceDto: CreateHasMaintenanceDto) {
     return this.maintenancesService.create(CreateHasMaintenanceDto);
   }
 
-  @MessagePattern('findOneInventoryHasAssign')
+  @MessagePattern('findOneInventoryHasMaintenance')
   findOne(
     @Payload()
     { term, deletes, relations, allRelations }: FindOneWhitTermAndRelationDto,
@@ -28,7 +28,7 @@ export class InventoryHasMaintenanceController {z
     });
   }
 
-  @MessagePattern('removeInventoryHasAssign')
+  @MessagePattern('removeInventoryHasMaintenance')
   remove(@Payload() { id }: { id: number }) {
     return this.maintenancesService.delete(id);
   }

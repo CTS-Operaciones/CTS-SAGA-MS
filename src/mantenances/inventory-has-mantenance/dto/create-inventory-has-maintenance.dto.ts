@@ -1,15 +1,4 @@
-
-import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsBoolean,
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-
-} from 'class-validator';
-import { ASSIGNMENT_STATUS } from 'src/common';
-import { ToBoolean } from 'src/common/decorator';
+import { IsArray, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateHasMaintenanceDto {
   @IsNumber()
@@ -18,12 +7,11 @@ export class CreateHasMaintenanceDto {
   @IsArray()
   idInventory: number[];
 
-  //Agregar obsrevaciones  descripcion
-  
+  @IsOptional()
+  @IsString()
+  description?: string;
 
-  @IsBoolean()
-  @IsNotEmpty()
-  @Type(() => Boolean)
-  @ToBoolean('is_preassignment')
-  is_preassignment: boolean = false;
+  @IsOptional()
+  @IsString()
+  observations?: string;
 }

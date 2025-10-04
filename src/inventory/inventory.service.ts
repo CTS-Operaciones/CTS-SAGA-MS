@@ -10,7 +10,6 @@ import {
   Repository,
 } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ADD_REMOVE } from '../common/constants/enums';
 import {
   createResult,
   deleteResult,
@@ -30,7 +29,6 @@ import { StateService } from 'src/state/state.service';
 import { UbicationsService } from 'src/ubications/ubications.service';
 import { ResourcesService } from 'src/resources/resources.service';
 import { throwError } from 'rxjs';
-import { filter } from 'src/common/interfaces';
 import { filterDto } from 'src/common/dto/searchFilter.dto';
 
 @Injectable()

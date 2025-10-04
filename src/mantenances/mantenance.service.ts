@@ -7,18 +7,14 @@ import {
   ErrorManager,
   findOneByTerm,
   FindOneWhitTermAndRelationDto,
-  paginationArray,
-  PaginationDto,
   PaginationRelationsDto,
   paginationResult,
-  runInTransaction
+  runInTransaction,
 } from 'src/common';
 import { Maintenances as Mantenance } from 'cts-entities';
 import { InjectRepository } from '@nestjs/typeorm';
 import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
 import { DataSource } from 'typeorm';
-import { SearchDto } from 'src/common/dto/search.dto';
-import { Ubication } from 'src/ubications/entities/ubication.entity';
 
 @Injectable()
 export class MantenanceService {

@@ -1,9 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { InventoryHasAssigment } from 'cts-entities';
+import { InventoryHasMaintenances } from 'cts-entities';
 import { DataSource, FindOneOptions, In, Repository } from 'typeorm';
 import {
-  ASSIGNMENT_STATUS,
   createResult,
   deleteResult,
   ErrorManager,
@@ -20,8 +19,8 @@ import { InventoryService } from '../../inventory/inventory.service';
 @Injectable()
 export class InventoryHasMaintenanceServices {
   constructor(
-    @InjectRepository(InventoryHasAssigment)
-    private readonly inventoryHasAssignRepository: Repository<InventoryHasAssigment>,
+    @InjectRepository(InventoryHasMaintenances)
+    private readonly inventoryHasMaintenanceRepository: Repository<InventoryHasMaintenances>,
     private readonly MantenanceService: MantenanceService,
     private readonly inventoryService: InventoryService,
     private readonly dataSource: DataSource,
@@ -59,12 +58,9 @@ export class InventoryHasMaintenanceServices {
             {
               assignmentsReturns: actaExist,
               inventory: i,
-            
             },
             InventoryHasAssigment,
           );
-
- 
         }),
       );
     } catch (error) {
@@ -210,17 +206,10 @@ export class InventoryHasMaintenanceServices {
       throw ErrorManager.createSignatureError(error);
     }
   }
-  async update(updateHasAssignDto: CreateHasMaintenanceDto) {
+  async update(updateMantenanceDto: CreateHasMaintenanceDto) {
     try {
-      const { idActa, idInventory, is_preassignment } = updateHasAssignDto;
+      const { idActa, idInventory } = updateMantenanceDto;
 
-      if (is_preassignment === false) {
-        throw new ErrorManager({
-          message:
-            'No se puede actualizar el inventario, la preasignación fue cerrada',
-          code: 'NOT_MODIFIED',
-        });
-      }
       const actaExist = await this.MantenanceService.findOne({ term: idActa });
 
       const search = await this.inventoryHasAssignRepository.find({
@@ -256,7 +245,7 @@ export class InventoryHasMaintenanceServices {
           });
 
           const r = await this.inventoryHasAssignRepository.save(result);
-        
+
           return r;
         }
       }
