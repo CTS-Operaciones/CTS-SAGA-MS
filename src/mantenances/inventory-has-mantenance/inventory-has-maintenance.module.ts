@@ -4,7 +4,7 @@ import { InventoryHasMaintenances } from 'cts-entities';
 import { InventoryModule } from '../../inventory/inventory.module';
 import { MaintenancesModule } from '../mantenance.module';
 import { InventoryHasMaintenanceController } from './inventory-has-maintenance.controller';
-import {InventoryHasMaintenanceServices} from './inventory-has-maintenance.service'
+import { InventoryHasMaintenanceservices } from './inventory-has-maintenance.service';
 
 @Module({
   imports: [
@@ -13,7 +13,7 @@ import {InventoryHasMaintenanceServices} from './inventory-has-maintenance.servi
     MaintenancesModule,
   ],
   controllers: [InventoryHasMaintenanceController],
-  providers: [InventoryHasMaintenanceServices],
-  exports: [InventoryHasMaintenanceServices],
+  providers: [InventoryHasMaintenanceservices],
+  exports: [InventoryHasMaintenanceservices],
 })
 export class InventoryHasMaintennaceModule {}

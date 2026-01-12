@@ -2,12 +2,12 @@ import { Controller } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { CreateHasMaintenanceDto}  from './dto/create-inventory-has-maintenance.dto';
 import { FindOneWhitTermAndRelationDto } from 'src/common';
-import { InventoryHasMaintenanceServices } from './inventory-has-maintenance.service'
+import { InventoryHasMaintenanceservices } from './inventory-has-maintenance.service';
 @Controller({ path: 'inventory-has-Maintenance', version: '1' })
 export class InventoryHasMaintenanceController {
   z;
   constructor(
-    private readonly maintenancesService: InventoryHasMaintenanceServices,
+    private readonly maintenancesService: InventoryHasMaintenanceservices,
   ) {}
 
   @MessagePattern('createInventoryHasMaintenance')

@@ -25,10 +25,15 @@ export class CreateMantenanceDto {
   @IsString()
   observation: string;
 
- @IsNumber()
+  @IsNumber()
   @IsNotEmpty()
   @IsPositive()
   responsible: number;
+
+  @IsNumber()
+  @IsNotEmpty()
+  @IsPositive()
+  project: number;
 
   @IsEnum(STATUS_MANTENANCE)
   status: STATUS_MANTENANCE = STATUS_MANTENANCE.EN_OPERACION;

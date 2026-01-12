@@ -17,10 +17,10 @@ import { MantenanceService } from '../mantenance.service';
 import { InventoryService } from '../../inventory/inventory.service';
 
 @Injectable()
-export class InventoryHasMaintenanceServices {
+export class InventoryHasMaintenanceservices {
   constructor(
     @InjectRepository(InventoryHasMaintenances)
-    private readonly inventoryHasMaintenanceRepository: Repository<InventoryHasMaintenances>,
+    private readonly InventoryHasMaintenancesRepository: Repository<InventoryHasMaintenances>,
     private readonly MantenanceService: MantenanceService,
     private readonly inventoryService: InventoryService,
     private readonly dataSource: DataSource,
@@ -54,12 +54,12 @@ export class InventoryHasMaintenanceServices {
       return await Promise.all(
         inventoryExist.map(async (i) => {
           await createResult(
-            this.inventoryHasAssignRepository,
+            this.InventoryHasMaintenancesRepository,
             {
-              assignmentsReturns: actaExist,
+              maintenances: actaExist,
               inventory: i,
             },
-            InventoryHasAssigment,
+            InventoryHasMaintenances,
           );
         }),
       );
@@ -76,9 +76,9 @@ export class InventoryHasMaintenanceServices {
     allRelations,
   }: FindOneWhitTermAndRelationDto) {
     try {
-      const options: FindOneOptions<InventoryHasAssigment> = {
-        where: { assignmentsReturns: { id: +term } },
-        relations: { assignmentsReturns: true },
+      const options: FindOneOptions<InventoryHasMaintenances> = {
+        where: { maintenances: { id: +term } },
+        relations: { maintenances: true },
       };
 
       if (relations) {
@@ -100,6 +100,7 @@ export class InventoryHasMaintenanceServices {
               },
             },
           },
+          maintenances: true,
         };
       }
 
@@ -107,12 +108,15 @@ export class InventoryHasMaintenanceServices {
         options.withDeleted = true;
       }
 
-      const result = await paginationResult(this.inventoryHasAssignRepository, {
-        all: true,
-        options,
-      });
+      const result = await paginationResult(
+        this.InventoryHasMaintenancesRepository,
+        {
+          all: true,
+          options,
+        },
+      );
 
-      const data = result.data.map((el: InventoryHasAssigment) => {
+      const data = result.data.map((el: InventoryHasMaintenances) => {
         return {
           inventory: !relations
             ? {
@@ -135,7 +139,7 @@ export class InventoryHasMaintenanceServices {
       return {
         ...result,
         data: {
-          assign: result.data[0].assignmentsReturns.id,
+          assign: result.data[0].maintenances.id,
           inventory_id: data,
         },
       };
@@ -147,24 +151,24 @@ export class InventoryHasMaintenanceServices {
 
   async restore(id: number) {
     try {
-      return await restoreResult(this.inventoryHasAssignRepository, id);
+      return await restoreResult(this.InventoryHasMaintenancesRepository, id);
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);
     }
   }
   async delete(id: number) {
-    return await deleteResult(this.inventoryHasAssignRepository, id);
+    return await deleteResult(this.InventoryHasMaintenancesRepository, id);
   }
 
   async findInventoryByActa(idActa: number, idInventory: number[]) {
     try {
-      const result = await this.inventoryHasAssignRepository.findOne({
+      const result = await this.InventoryHasMaintenancesRepository.findOne({
         where: {
-          assignmentsReturns: { id: idActa },
+          maintenances: { id: idActa },
           inventory: { id: In(idInventory) },
         },
-        relations: { assignmentsReturns: true },
+        relations: { maintenances: true },
       });
       return result;
     } catch (error) {
@@ -175,7 +179,7 @@ export class InventoryHasMaintenanceServices {
 
   async findOne(id: number) {
     try {
-      const result = await this.inventoryHasAssignRepository.findOne({
+      const result = await this.InventoryHasMaintenancesRepository.findOne({
         where: { id },
       });
       return result;
@@ -188,7 +192,7 @@ export class InventoryHasMaintenanceServices {
   async remove(id: number) {
     try {
       return runInTransaction(this.dataSource, async (queryRunner) => {
-        const search = await this.inventoryHasAssignRepository.find({
+        const search = await this.InventoryHasMaintenancesRepository.find({
           where: { id },
         });
 
@@ -199,7 +203,7 @@ export class InventoryHasMaintenanceServices {
           });
         }
 
-        return await this.inventoryHasAssignRepository.delete(id);
+        return await this.InventoryHasMaintenancesRepository.delete(id);
       });
     } catch (error) {
       console.log(error);
@@ -208,16 +212,16 @@ export class InventoryHasMaintenanceServices {
   }
   async update(updateMantenanceDto: CreateHasMaintenanceDto) {
     try {
-      const { idActa, idInventory } = updateMantenanceDto;
+      const { idActa, idInventory, ...rest } = updateMantenanceDto;
 
       const actaExist = await this.MantenanceService.findOne({ term: idActa });
 
-      const search = await this.inventoryHasAssignRepository.find({
-        where: { assignmentsReturns: { id: idActa } },
+      const search = await this.InventoryHasMaintenancesRepository.find({
+        where: { maintenances: { id: idActa } },
         relations: { inventory: true },
       });
 
-      let recursosExistentes = await search.map((e) => e.inventory.id);
+      let recursosExistentes = search.map((e) => e.inventory.id);
 
       let resourcesToDelete = search.filter(
         (rel) => !idInventory?.includes(rel.inventory.id),
@@ -225,7 +229,7 @@ export class InventoryHasMaintenanceServices {
 
       if (resourcesToDelete.length > 0) {
         for (const itemToDelete of resourcesToDelete) {
-          await this.inventoryHasAssignRepository.remove(itemToDelete);
+          await this.InventoryHasMaintenancesRepository.remove(itemToDelete);
         }
       }
 
@@ -238,13 +242,13 @@ export class InventoryHasMaintenanceServices {
           const inventoryE = await this.inventoryService.findOne({
             term: itemToAdd,
           });
-          const result = await this.inventoryHasAssignRepository.create({
+          const result = this.InventoryHasMaintenancesRepository.create({
             inventory: inventoryE,
-            assignmentsReturns: actaExist,
-            type: ASSIGNMENT_STATUS.ASIGNACION,
+            maintenances: actaExist,
+            ...rest,
           });
 
-          const r = await this.inventoryHasAssignRepository.save(result);
+          const r = await this.InventoryHasMaintenancesRepository.save(result);
 
           return r;
         }
