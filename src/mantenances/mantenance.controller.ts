@@ -4,7 +4,7 @@ import { MantenanceService } from './mantenance.service';
 import { CreateMantenanceDto } from './dto/create-mantenance.dto';
 import { UpdateMantenanceDto } from './dto/update-mantenance.dto';
 import { FindOneWhitTermAndRelationDto, PaginationDto, PaginationRelationsDto } from 'src/common';
-import { SearchDto } from 'src/common/dto/search.dto';
+import { searchMaintenanceDto } from 'src/common/dto/search.dto';
 
 @Controller()
 export class MantenanceController {
@@ -34,15 +34,14 @@ export class MantenanceController {
   remove(@Payload() { id }: { id: number }) {
     return this.MantenanceService.remove(id);
   }
-
- /*  @MessagePattern('findByTermRemoveMaintenance')
+  @MessagePattern('findByTermMaintenance')
   find(
     @Payload()
     {
       pagination,
       searchDto,
     }: {
-      searchDto: SearchDto;
+      searchDto: searchMaintenanceDto;
       pagination: PaginationDto;
     },
   ) {
@@ -50,5 +49,5 @@ export class MantenanceController {
       searchDto,
       pagination,
     });
-  } */
+  }
 }

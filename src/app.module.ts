@@ -14,7 +14,7 @@ import { UbicationsModule } from './ubications/ubications.module';
 import { InventoryHasAddModule } from './add-remove/inventory-has-add/inventory-has-add.module';
 import { InventoryHasAssignModule } from './assignments/inventory-has-assign/inventory-has-assign.module';
 import { HabilitationModule } from './habilitation/habilitation.module';
-
+import { InventoryHasMaintennaceModule } from './mantenances/inventory-has-mantenance/inventory-has-maintenance.module';
 @Module({
   imports: [
     TypeOrmModule.forRoot({ ...ConfigDataSource }),
@@ -24,6 +24,7 @@ import { HabilitationModule } from './habilitation/habilitation.module';
     ModelsModule,
     EnablingModule,
     MaintenancesModule,
+    InventoryHasMaintennaceModule,
     AssignmentsModule,
     InventoryModule,
     AdmissionsDischargesModule,

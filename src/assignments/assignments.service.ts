@@ -12,7 +12,6 @@ import {
   PaginationRelationsDto,
   paginationResult,
   runInTransaction,
-  updateResult,
 } from 'src/common';
 import { AssignmentsReturns as Assignments } from 'cts-entities';
 import { InjectRepository } from '@nestjs/typeorm';

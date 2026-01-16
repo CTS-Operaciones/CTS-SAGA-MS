@@ -8,7 +8,6 @@ import {
   IsString,
 } from 'class-validator';
 import { ToBoolean } from 'src/common/decorator';
-import { Timestamp } from 'typeorm';
 export class CreateHabilitationDto {
   @IsDate()
   @IsNotEmpty()

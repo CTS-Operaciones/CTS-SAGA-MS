@@ -1,21 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMantenanceDto } from './dto/create-mantenance.dto';
 import { UpdateMantenanceDto } from './dto/update-mantenance.dto';
+import { Maintenances as Mantenance } from 'cts-entities';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
+import { DataSource } from 'typeorm';
+import { searchMaintenanceDto } from 'src/common/dto/search.dto';
 import {
   createResult,
   deleteResult,
   ErrorManager,
   findOneByTerm,
   FindOneWhitTermAndRelationDto,
+  paginationArray,
+  PaginationDto,
   PaginationRelationsDto,
   paginationResult,
   runInTransaction,
+  updateResult,
 } from 'src/common';
-import { Maintenances as Mantenance } from 'cts-entities';
-import { InjectRepository } from '@nestjs/typeorm';
-import { FindManyOptions, FindOneOptions, Repository } from 'typeorm';
-import { DataSource } from 'typeorm';
-
 @Injectable()
 export class MantenanceService {
   constructor(
@@ -61,8 +64,8 @@ export class MantenanceService {
                   brand: true,
                 },
               },
-           }
-          }
+            },
+          },
         };
       }
 
@@ -88,21 +91,20 @@ export class MantenanceService {
 
       if (relations) {
         options.relations = {
-       inventoryHasMaintenances: {
-         inventory: {
-           ubications: true,
-           state: true,
-           resource: {
-             clasification: true,
-             model: {
-               brand: true,
-             },
-           },
-           }
-       }
-        
-        }
-        }
+          inventoryHasMaintenances: {
+            inventory: {
+              ubications: true,
+              state: true,
+              resource: {
+                clasification: true,
+                model: {
+                  brand: true,
+                },
+              },
+            },
+          },
+        };
+      }
       if (allRelations) {
         options.relations = {
           inventoryHasMaintenances: {
@@ -134,8 +136,7 @@ export class MantenanceService {
       console.log(error);
       throw ErrorManager.createSignatureError(error);
     }
-    }
-    
+  }
 
   update(updateMantenanceDto: UpdateMantenanceDto) {
     try {
@@ -178,36 +179,66 @@ export class MantenanceService {
     }
   }
 
-/*   async findByTerm({
+  async findByTerm({
     pagination,
     searchDto,
   }: {
-    searchDto: SearchDto;
+    searchDto: searchMaintenanceDto;
     pagination: PaginationDto;
   }) {
     try {
-      const { project_id, user_id, date_init, date_end } = searchDto;
+      const {
+        project_id,
+        user_id,
+        date_init,
+        date_end,
+        description,
+        observations,
+        maintenanceType,
+      } = searchDto;
       const { limit: limitP, page: pageP, all } = pagination;
 
       const limit = limitP ? limitP : 10;
       const page = pageP ? pageP : 1;
+      const query =
+        this.MantenanceRepository.createQueryBuilder('maintenance').select();
 
-      const query = this.MantenanceRepository.createQueryBuilder('ad').select();
-      query.andWhere(`ad."type"::text like 'ASIGNACION'`);
       if (user_id) {
-        query.andWhere('ad.user_id=:user', { user: user_id });
+        query.andWhere('maintenance.user_id=:user', { user: user_id });
       }
       if (project_id) {
-        query.andWhere('ad.project_id=:project', { project: project_id });
+        query.andWhere('maintenance.projectId=:project', {
+          project: project_id,
+        });
       }
       if (date_init && date_end) {
         query
-          .andWhere('ad."date"::date >= :dateInit', { dateInit: date_init })
-          .andWhere('ad."date"::date  <= :dateEnd', { dateEnd: date_end });
+          .andWhere('maintenance."date_init"::date >= :dateInit', {
+            dateInit: date_init,
+          })
+          .andWhere('maintenance."date_end"::date  <= :dateEnd', {
+            dateEnd: date_end,
+          });
       } else if (date_init) {
-        query.andWhere('ad.date::date  >= :dateInit::date', {
+        query.andWhere('maintenance.date_init::date  = :dateInit::date', {
           dateInit: date_init,
         });
+      }
+      if (description) {
+        query.andWhere(
+          `maintenance."description"::text like '%${description}%'`,
+        );
+      }
+      if (observations) {
+        query.andWhere(
+          `maintenance."observations"::text like '%${observations}%'`,
+        );
+      }
+
+      if (maintenanceType) {
+        query.andWhere(
+          `maintenance."maintenanceType"::text like '%${maintenanceType}%'`,
+        );
       }
 
       const r = await query.getRawMany();
@@ -216,5 +247,5 @@ export class MantenanceService {
     } catch (error) {
       throw ErrorManager.createSignatureError(error);
     }
-  } */
+  }
 }

@@ -1,6 +1,4 @@
-import { Type } from 'class-transformer';
 import {
-  IsBoolean,
   IsDate,
   IsEnum,
   IsNotEmpty,
@@ -13,17 +11,17 @@ import { MAITENANCE_TYPE, STATUS_MANTENANCE } from 'src/common/constants/enums';
 export class CreateMantenanceDto {
   @IsDate()
   @IsNotEmpty()
-  startDate: Date;
+  date_init: Date;
 
   @IsDate()
   @IsNotEmpty()
-  endDate: Date;
+  date_end: Date;
 
   @IsString()
   description: string;
 
   @IsString()
-  observation: string;
+  observations: string;
 
   @IsNumber()
   @IsNotEmpty()
@@ -33,7 +31,7 @@ export class CreateMantenanceDto {
   @IsNumber()
   @IsNotEmpty()
   @IsPositive()
-  project: number;
+  projectId: number;
 
   @IsEnum(STATUS_MANTENANCE)
   status: STATUS_MANTENANCE = STATUS_MANTENANCE.EN_OPERACION;

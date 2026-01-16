@@ -2,15 +2,15 @@ import {
   Repository,
   FindManyOptions,
   ObjectLiteral,
-  Not,
-  IsNull,
   SelectQueryBuilder,
 } from 'typeorm';
+
 import {
   IPaginationDto,
   IPaginationResponse,
   IPaginationResult,
 } from '../interfaces';
+
 import {} from 'typeorm';
 export async function paginationResult<T extends ObjectLiteral>(
   repository: Repository<T>,

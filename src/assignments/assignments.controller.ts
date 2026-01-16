@@ -31,6 +31,13 @@ export class AssignmentsController {
   }
 
   @MessagePattern('removeAssignment')
+  /*************  ✨ Windsurf Command ⭐  *************/
+  /**
+   * Removes an assignment with the given id.
+   * @param { id } The id of the assignment to be removed.
+   * @return { Promise<void> } A promise that resolves when the assignment is removed.
+   */
+  /*******  630fc8b2-bcb8-4eb1-84f6-80e70e0c6616  *******/
   remove(@Payload() { id }: { id: number }) {
     return this.assignmentsService.remove(id);
   }

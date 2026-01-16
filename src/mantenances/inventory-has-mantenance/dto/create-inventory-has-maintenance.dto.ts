@@ -5,7 +5,7 @@ export class CreateHasMaintenanceDto {
   idActa: number;
 
   @IsArray()
-  idInventory: number[];
+  inventory: number[];
 
   @IsOptional()
   @IsString()

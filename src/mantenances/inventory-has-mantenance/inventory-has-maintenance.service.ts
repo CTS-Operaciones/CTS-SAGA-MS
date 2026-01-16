@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { InventoryHasMaintenances } from 'cts-entities';
+import { InventoryHasMaintenances, Maintenances } from 'cts-entities';
 import { DataSource, FindOneOptions, In, Repository } from 'typeorm';
 import {
   createResult,
@@ -28,16 +28,16 @@ export class InventoryHasMaintenanceservices {
 
   async create(createDto: CreateHasMaintenanceDto) {
     try {
-      const { idActa, idInventory } = createDto;
+      const { idActa, inventory } = createDto;
 
-      if (!Array.isArray(idInventory) || idInventory.length === 0) {
+      if (!Array.isArray(inventory) || inventory.length === 0) {
         throw new ErrorManager({
           message: 'El inventario debe ser un array',
           code: 'BAD_REQUEST',
         });
       }
 
-      const inventoryActa = await this.findInventoryByActa(idActa, idInventory);
+      const inventoryActa = await this.findInventoryByActa(idActa, inventory);
 
       if (inventoryActa) {
         throw new ErrorManager({
@@ -47,22 +47,22 @@ export class InventoryHasMaintenanceservices {
       }
 
       const inventoryExist =
-        await this.inventoryService.findOneSimple(idInventory);
+        await this.inventoryService.findOneSimple(inventory);
 
       const actaExist = await this.MantenanceService.finOneSimple(idActa);
 
-      return await Promise.all(
-        inventoryExist.map(async (i) => {
-          await createResult(
-            this.InventoryHasMaintenancesRepository,
-            {
-              maintenances: actaExist,
-              inventory: i,
-            },
-            InventoryHasMaintenances,
-          );
-        }),
-      );
+      await inventoryExist.map(async (i) => {
+        await createResult(
+          this.InventoryHasMaintenancesRepository,
+          {
+            maintenances: actaExist,
+            inventory: i,
+          },
+          InventoryHasMaintenances,
+        );
+      });
+
+      return inventoryExist;
     } catch (error) {
       console.log(error);
       throw ErrorManager.createSignatureError(error);
@@ -139,7 +139,7 @@ export class InventoryHasMaintenanceservices {
       return {
         ...result,
         data: {
-          assign: result.data[0].maintenances.id,
+          maintenances: result.data[0].maintenances.id,
           inventory_id: data,
         },
       };
@@ -212,7 +212,7 @@ export class InventoryHasMaintenanceservices {
   }
   async update(updateMantenanceDto: CreateHasMaintenanceDto) {
     try {
-      const { idActa, idInventory, ...rest } = updateMantenanceDto;
+      const { idActa, inventory, ...rest } = updateMantenanceDto;
 
       const actaExist = await this.MantenanceService.findOne({ term: idActa });
 
@@ -224,7 +224,7 @@ export class InventoryHasMaintenanceservices {
       let recursosExistentes = search.map((e) => e.inventory.id);
 
       let resourcesToDelete = search.filter(
-        (rel) => !idInventory?.includes(rel.inventory.id),
+        (rel) => !inventory?.includes(rel.inventory.id),
       );
 
       if (resourcesToDelete.length > 0) {
@@ -233,7 +233,7 @@ export class InventoryHasMaintenanceservices {
         }
       }
 
-      let resourcesToAdd = idInventory?.filter(
+      let resourcesToAdd = inventory?.filter(
         (newResource) => !recursosExistentes.includes(newResource),
       );
 

@@ -7,8 +7,15 @@ import { FindOneWhitTermAndRelationDto } from 'src/common';
 @Controller()
 export class InventoryHasAddController {
   constructor(private readonly addRemoveService: InventoryHasAddService) {}
-
   @MessagePattern('createInventoryHasAdd')
+  /*************  ✨ Windsurf Command ⭐  *************/
+  /**
+   * Create a new inventory with the given acta and inventory.
+   * @param {CreateHasAddRemoveDto} createAddRemoveDto - The data for the new inventory.
+   * @returns {Promise<CreateHasAddRemoveDto>} - The created inventory.
+   * @throws {RpcException} - If there is an error creating the inventory.
+   */
+  /*******  9ca2c80c-22ed-44c5-b843-ec644c39f21c  *******/
   create(@Payload() createAddRemoveDto: CreateHasAddRemoveDto) {
     try {
       console.log(createAddRemoveDto);
@@ -38,10 +45,5 @@ export class InventoryHasAddController {
   @MessagePattern('removeInventoryHasAdd')
   remove(@Payload() { id }: { id: number }) {
     return this.addRemoveService.removeActa(id);
-  }
-
-  @MessagePattern('removeItemInventoryHasAdd')
-  restore(@Payload() { id }: { id: number }) {
-    return this.addRemoveService.removeItem(id);
   }
 }

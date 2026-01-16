@@ -282,7 +282,7 @@ export class InventoryService {
 
       if (ids.length !== result.length) {
         throw new ErrorManager({
-          message: msgError('LENGTH_INCORRECT', {
+          message: msgError('NOT_FOUND', {
             ids: ids.length,
             find: result.length,
           }),
