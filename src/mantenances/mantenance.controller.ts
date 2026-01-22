@@ -50,4 +50,19 @@ export class MantenanceController {
       pagination,
     });
   }
+
+  //FindByTermDetails
+  @MessagePattern('findByTermDetails')
+  findDetails(
+    @Payload()
+    {
+      id,
+    }: {
+      id: number;
+    
+    },
+  ) {
+    return this.MantenanceService.getMaintenanceDetails(id);
+  }
 }
+  

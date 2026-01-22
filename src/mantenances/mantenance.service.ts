@@ -19,6 +19,8 @@ import {
   runInTransaction,
   updateResult,
 } from 'src/common';
+import { resourceLimits } from 'worker_threads';
+import { object } from 'joi';
 @Injectable()
 export class MantenanceService {
   constructor(
@@ -79,7 +81,48 @@ export class MantenanceService {
       throw ErrorManager.createSignatureError(error);
     }
   }
+  async getMaintenanceDetails(id: number) {
 
+    const query = this.MantenanceRepository.createQueryBuilder('maintenance')
+      .leftJoin('maintenance.inventoryHasMaintenances', 'ihm')
+      .leftJoin('ihm.inventory', 'inv')
+      .leftJoin('inv.resource', 'res')
+      .leftJoin('inv.ubications', 'ubi')
+      .leftJoin('res.clasification', 'clasification')
+      .leftJoin('res.model', 'model')
+      .leftJoin('model.brand', 'brand')
+      .leftJoin('employees', 'e', 'maintenance.responsible = e.id')
+      .leftJoin('projects', 'p', 'maintenance."projectId" = p.id')
+      .withDeleted()
+      .select([
+        'maintenance.id',
+        'maintenance.id AS maintenance_id',
+        'maintenance.description AS maintenance_description',
+        'maintenance.maintenanceType',
+        'maintenance.date_init',
+        'maintenance.date_end',
+        'brand.id AS brandId',
+        'brand.name AS brandName',
+        'model.id AS modelId',
+        'model.name AS modelName',
+        'clasification.id AS clasificationId',
+        'clasification.name AS clasificationName',
+        'res.id AS resourceId',
+        'res.name AS resourceName',
+        'inv.id AS inventoryId',
+        'inv.serialNumber AS serial',
+        'e.id AS userId',
+        'e.names AS userName',
+        'p.id AS projectId',
+        'p.name AS projectName',
+      ]);
+  
+    query.orderBy('maintenance.id', 'DESC');
+    const r = await query.getRawMany();
+    console.log('data:',r);
+    return r
+  
+  }
   async findOne({
     term,
     deletes,
